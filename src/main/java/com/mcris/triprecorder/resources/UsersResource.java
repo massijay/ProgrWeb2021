@@ -1,5 +1,8 @@
 package com.mcris.triprecorder.resources;
 
+import com.mcris.triprecorder.models.entities.Trip;
+import com.mcris.triprecorder.models.entities.User;
+import com.mcris.triprecorder.providers.DBProvider;
 import org.glassfish.jersey.server.ContainerRequest;
 
 import javax.servlet.ServletRequest;
@@ -12,13 +15,15 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Request;
 import java.sql.*;
+import java.util.List;
 
 @Path("/users")
 public class UsersResource {
 
     @GET
     @Produces(MediaType.TEXT_PLAIN)
-    public String getUsers(@Context ContainerRequest containerRequest){// https://dev.mysql.com/doc/connector-j/8.0/en/connector-j-usagenotes-connect-drivermanager.html#connector-j-usagenotes-connect-drivermanager
+    public String getUsers(@Context ContainerRequest containerRequest){
+        // https://dev.mysql.com/doc/connector-j/8.0/en/connector-j-usagenotes-connect-drivermanager.html#connector-j-usagenotes-connect-drivermanager
         // https://www3.ntu.edu.sg/home/ehchua/programming/java/JDBC_Basic.html
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
@@ -26,14 +31,12 @@ public class UsersResource {
             throw new RuntimeException(e);
         }
         try {
-            Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/trip_recorder?useSSL=false&serverTimezone=UTC",
-                    "user", "user");
-
             String query = "select * from users";
             StringBuilder sb = new StringBuilder();
-            String principal = containerRequest.getSecurityContext().getUserPrincipal().getName();
-            sb.append(principal).append("\n\n");
-            try(Statement smt = connection.createStatement()){
+            User user = (User) containerRequest.getSecurityContext().getUserPrincipal();
+            List<Trip> trips = DBProvider.getInstance().getTripsofUser(user);
+            sb.append(user.getUsername()).append("\n\n");
+            try(Statement smt = DBProvider.getConnection().createStatement()){
                 ResultSet rset = smt.executeQuery(query);
                 while (rset.next()){
                     sb.append(rset.getInt("id"))

@@ -1,10 +1,16 @@
 package com.mcris.triprecorder.filters;
 
+import com.mcris.triprecorder.models.SessionSecurityContext;
+import com.mcris.triprecorder.models.entities.Session;
+import com.mcris.triprecorder.providers.DBProvider;
+
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import java.io.IOException;
 import java.security.Principal;
+import java.sql.SQLException;
 
 public class AuthFilter implements ContainerRequestFilter {
     // https://dennis-xlc.gitbooks.io/restful-java-with-jax-rs-2-0-2rd-edition/content/en/part1/chapter15/programmatic_security.html
@@ -13,31 +19,28 @@ public class AuthFilter implements ContainerRequestFilter {
 
     @Override
     public void filter(ContainerRequestContext containerRequestContext) throws IOException {
-        containerRequestContext.setSecurityContext(new SecurityContext() {
-            @Override
-            public Principal getUserPrincipal() {
-                return new Principal() {
-                    @Override
-                    public String getName() {
-                        return "utente_test";
-                    }
-                };
-            }
-
-            @Override
-            public boolean isUserInRole(String s) {
-                return true;
-            }
-
-            @Override
-            public boolean isSecure() {
-                return false;
-            }
-
-            @Override
-            public String getAuthenticationScheme() {
-                return "Token-Based-Auth-Scheme";
-            }
-        });
+        String authHeader = containerRequestContext.getHeaderString("Authorization");
+        if (authHeader == null || authHeader.isEmpty()) {
+            containerRequestContext.abortWith(Response.status(Response.Status.UNAUTHORIZED).build());
+            return;
+        }
+        String[] parts = authHeader.split(" ");
+        if (parts.length < 2) {
+            containerRequestContext.abortWith(Response.status(Response.Status.UNAUTHORIZED).build());
+            return;
+        }
+        // TODO: needs to be sanitized?
+        String token = parts[1];
+        Session session = null;
+        try {
+            session = DBProvider.getInstance().getSession(token);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        if (session == null || session.getUser() == null) {
+            containerRequestContext.abortWith(Response.status(Response.Status.UNAUTHORIZED).build());
+            return;
+        }
+        containerRequestContext.setSecurityContext(new SessionSecurityContext(session));
     }
 }
