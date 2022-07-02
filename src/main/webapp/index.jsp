@@ -5,9 +5,11 @@
     <title>JSP - Hello World</title>
 </head>
 <body>
-<h1><%= "Hello World!" %>
+<h1><%= "Hello World!" + (2+2) %>
 </h1>
-<br/>
-<a href="hello-servlet">Hello Servlet</a>
+<ul>
+    <li><a href="hello-servlet">Hello Servlet</a></li>
+    <li><a href="api/users">Users</a></li>
+</ul>
 </body>
 </html>
