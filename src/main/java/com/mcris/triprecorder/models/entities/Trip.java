@@ -1,5 +1,6 @@
 package com.mcris.triprecorder.models.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.sql.Timestamp;
@@ -29,6 +30,7 @@ public class Trip {
     private String notes;
     @OneToMany(mappedBy = "trip")
     private Collection<Geopoint> geopoints;
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
     private User user;

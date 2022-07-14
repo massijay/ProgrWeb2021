@@ -17,7 +17,7 @@ public class UsersResource {
     @Produces(MediaType.APPLICATION_JSON)
     public User getLoggedUser(@Context ContainerRequest containerRequest){
         User user = (User) containerRequest.getSecurityContext().getUserPrincipal();
-        //TODO: PERCHé NON FAI IL JSON!?!?!?!
+        user.setTrips(null);
         return user;
     }
 }
