@@ -1,15 +1,34 @@
 package com.mcris.triprecorder.models.entities;
 
+import jakarta.persistence.*;
+
 import java.sql.Timestamp;
 
+@Entity
+@Table(name = "geopoints", schema = "trip_recorder")
 public class Geopoint {
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @Column(name = "id")
     private int id;
+    @Basic
+    @Column(name = "trip_id", insertable = false, updatable = false)
     private int tripId;
-    private Trip trip;
+    @Basic
+    @Column(name = "latitude")
     private double latitude;
+    @Basic
+    @Column(name = "longitude")
     private double longitude;
+    @Basic
+    @Column(name = "recorded_at")
     private Timestamp recordedAt;
+    @Basic
+    @Column(name = "label")
     private String label;
+    @ManyToOne
+    @JoinColumn(name = "trip_id", referencedColumnName = "id", nullable = false)
+    private Trip trip;
 
     public int getId() {
         return id;
@@ -25,14 +44,6 @@ public class Geopoint {
 
     public void setTripId(int tripId) {
         this.tripId = tripId;
-    }
-
-    public Trip getTrip() {
-        return trip;
-    }
-
-    public void setTrip(Trip trip) {
-        this.trip = trip;
     }
 
     public double getLatitude() {
@@ -65,5 +76,26 @@ public class Geopoint {
 
     public void setLabel(String label) {
         this.label = label;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Geopoint geopoint = (Geopoint) o;
+        return id == geopoint.id;
+    }
+
+    @Override
+    public int hashCode() {
+        return id;
+    }
+
+    public Trip getTrip() {
+        return trip;
+    }
+
+    public void setTrip(Trip tripsByTripId) {
+        this.trip = tripsByTripId;
     }
 }

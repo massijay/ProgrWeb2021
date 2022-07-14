@@ -7,9 +7,7 @@ import com.mcris.triprecorder.providers.DBProvider;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
 import java.io.IOException;
-import java.security.Principal;
 import java.sql.SQLException;
 
 public class AuthFilter implements ContainerRequestFilter {
@@ -18,7 +16,7 @@ public class AuthFilter implements ContainerRequestFilter {
     // https://dzone.com/articles/custom-security-context-injax-rs
 
     @Override
-    public void filter(ContainerRequestContext containerRequestContext) throws IOException {
+    public void filter(ContainerRequestContext containerRequestContext) {
         String authHeader = containerRequestContext.getHeaderString("Authorization");
         if (authHeader == null || authHeader.isEmpty()) {
             containerRequestContext.abortWith(Response.status(Response.Status.UNAUTHORIZED).build());
@@ -31,12 +29,7 @@ public class AuthFilter implements ContainerRequestFilter {
         }
         // TODO: needs to be sanitized?
         String token = parts[1];
-        Session session = null;
-        try {
-            session = DBProvider.getInstance().getSession(token);
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+        Session session = DBProvider.getInstance().getSession(token);
         if (session == null || session.getUser() == null) {
             containerRequestContext.abortWith(Response.status(Response.Status.UNAUTHORIZED).build());
             return;
