@@ -16,7 +16,6 @@ import javax.ws.rs.core.Response;
 
 @Path("/auth")
 public class AuthResources {
-    // TODO: this has to work unathuenticated
     // TODO: hash and salt passwords
 
     @POST
@@ -24,6 +23,7 @@ public class AuthResources {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response login(User user, @Context ContainerRequest containerRequest) {
+        // TODO: check if already logged?
         User authenticated = DBProvider.getInstance().getUserbyUsernameAndPassword(user.getUsername(), user.getPassword());
         if (authenticated != null) {
             Session s = DBProvider.getInstance().createNewSession(authenticated);
