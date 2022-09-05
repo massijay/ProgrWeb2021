@@ -1,19 +1,21 @@
 package com.mcris.triprecorder.models.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.persistence.*;
 
+import javax.persistence.*;
 import java.sql.Timestamp;
 
 @Entity
 @Table(name = "geopoints", schema = "trip_recorder")
+@NamedQuery(name = "Geopoint.getListByTripIdIfUser",
+        query = "select t.geopoints from Trip t where t.id = :tripId and t.userId = :userId")
 public class Geopoint {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
     @Column(name = "id")
     private int id;
     @Basic
-    @Column(name = "trip_id", insertable = false, updatable = false)
+    @Column(name = "trip_id", nullable = false)
     private int tripId;
     @Basic
     @Column(name = "latitude")
@@ -28,7 +30,7 @@ public class Geopoint {
     @Column(name = "label")
     private String label;
     @ManyToOne
-    @JoinColumn(name = "trip_id", referencedColumnName = "id", nullable = false)
+    @JoinColumn(name = "trip_id", referencedColumnName = "id", insertable = false, updatable = false)
     @JsonIgnore
     private Trip trip;
 

@@ -1,20 +1,28 @@
 package com.mcris.triprecorder.models.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.persistence.*;
 
+import javax.persistence.*;
 import java.sql.Timestamp;
 import java.util.Collection;
 
 @Entity
 @Table(name = "trips", schema = "trip_recorder")
+@NamedQueries({
+        @NamedQuery(name = "Trip.getByIdIfCorrectUser",
+                query = "select t from Trip t where t.id = :tripId and t.userId = :userId"),
+        @NamedQuery(name = "Trip.removeByIdIfCorrectUser",
+                query = "delete from Trip t where t.id = :tripId and t.userId = :userId")
+})
+
 public class Trip {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
     @Column(name = "id")
     private int id;
+    @JsonIgnore
     @Basic
-    @Column(name = "user_id", insertable = false, updatable = false)
+    @Column(name = "user_id", nullable = false)
     private int userId;
     @Basic
     @Column(name = "trip_name")
@@ -28,11 +36,12 @@ public class Trip {
     @Basic
     @Column(name = "notes")
     private String notes;
-    @OneToMany(mappedBy = "trip")
+    @JsonIgnore
+    @OneToMany(mappedBy = "trip", fetch = FetchType.LAZY)
     private Collection<Geopoint> geopoints;
     @JsonIgnore
     @ManyToOne
-    @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
+    @JoinColumn(name = "user_id", referencedColumnName = "id", insertable = false, updatable = false)
     private User user;
 
     public int getId() {

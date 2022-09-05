@@ -2,8 +2,9 @@ package com.mcris.triprecorder.models.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
+import javax.persistence.*;
 import java.security.Principal;
 import java.sql.Timestamp;
 import java.util.Collection;
@@ -11,7 +12,7 @@ import java.util.Collection;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Entity
 @Table(name = "users", schema = "trip_recorder")
-@NamedQuery(name = "User.byId", query = "select u from User u where u.id = :userId")
+@NamedQuery(name = "User.byUsernameAndPassword", query = "select u from User u where u.username = :username and u.password = :password")
 public class User implements Principal {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
@@ -20,7 +21,7 @@ public class User implements Principal {
     @Basic
     @Column(name = "username")
     private String username;
-    @JsonIgnore
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @Basic
     @Column(name = "password")
     private String password;
@@ -30,6 +31,7 @@ public class User implements Principal {
     @JsonIgnore
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     private Collection<Session> sessions;
+    @JsonIgnore
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     private Collection<Trip> trips;
     @Basic

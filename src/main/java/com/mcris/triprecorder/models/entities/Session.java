@@ -1,31 +1,37 @@
 package com.mcris.triprecorder.models.entities;
 
-import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.hibernate.annotations.GenericGenerator;
-import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.Type;
 
+import javax.persistence.*;
 import java.sql.Timestamp;
-import java.sql.Types;
 import java.util.UUID;
 
 @Entity
 @Table(name = "sessions", schema = "trip_recorder")
-@NamedQuery(name = "Session.byToken", query = "select s from Session s where s.token = :tokenString")
+@NamedQueries({
+        @NamedQuery(name = "Session.byToken",
+                query = "select s from Session s where s.token = :tokenString"),
+        @NamedQuery(name = "Session.deleteByToken",
+                query = "delete from Session s where s.token = :tokenString")
+})
 public class Session {
     // https://www.codementor.io/@petrepopescu/how-to-use-string-uuid-in-hibernate-with-mysql-1jrhjh6ef5
     @GeneratedValue(generator = "uuid2")
     @GenericGenerator(name = "uuid2", strategy = "uuid2")
     @Id
     @Column(name = "token", updatable = false, nullable = false, columnDefinition = "VARCHAR(255)")
-    @JdbcTypeCode(Types.VARCHAR)
+    @Type(type = "uuid-char")
     private UUID token;
+    @JsonIgnore
     @Basic
-    @Column(name = "user_id")
+    @Column(name = "user_id", nullable = false)
     private int userId;
     @Basic
     @Column(name = "expire_at")
     private Timestamp expireAt;
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false, insertable = false, updatable = false)
     private User user;
