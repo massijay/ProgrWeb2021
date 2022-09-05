@@ -31,4 +31,8 @@ public class SessionSecurityContext implements SecurityContext {
     public String getAuthenticationScheme() {
         return "Token-Based-Auth-Scheme";
     }
+
+    public Session getSession() {
+        return session;
+    }
 }
