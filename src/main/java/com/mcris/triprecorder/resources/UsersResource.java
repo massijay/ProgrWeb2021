@@ -8,16 +8,21 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 
-@Path("/users")
+@Path("/profile")
 public class UsersResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public User getLoggedUser(@Context ContainerRequest containerRequest){
-        User user = (User) containerRequest.getSecurityContext().getUserPrincipal();
-        user.setTrips(null);
-        return user;
+    public User getLoggedUser(@Context ContainerRequest containerRequest) {
+        return (User) containerRequest.getSecurityContext().getUserPrincipal();
     }
+
+//    @PATCH
+//    @Produces(MediaType.APPLICATION_JSON)
+//    @Consumes(MediaType.APPLICATION_JSON)
+//    public User patchUser(User patchedUser,@Context ContainerRequest containerRequest){
+//        User current = (User) containerRequest.getSecurityContext().getUserPrincipal();
+//        if(patchedUser)
+//    }
 }
