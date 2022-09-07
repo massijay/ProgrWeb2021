@@ -87,6 +87,7 @@ public class User implements Principal {
     }
 
     @Override
+    @JsonIgnore
     public String getName() {
         return username;
     }
