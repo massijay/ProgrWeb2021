@@ -7,9 +7,11 @@ import com.mcris.triprecorder.providers.DBProvider;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.ext.Provider;
 import java.sql.Timestamp;
 import java.time.Instant;
 
+@Provider
 public class AuthFilter implements ContainerRequestFilter {
     // https://dennis-xlc.gitbooks.io/restful-java-with-jax-rs-2-0-2rd-edition/content/en/part1/chapter15/programmatic_security.html
     // https://itnext.io/how-to-implement-a-jax-rs-authentication-filter-3eee64b34b99
