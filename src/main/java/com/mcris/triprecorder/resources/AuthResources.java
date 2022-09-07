@@ -38,6 +38,6 @@ public class AuthResources {
     public Response logout(@Context ContainerRequest containerRequest) {
         Session current = ((SessionSecurityContext) containerRequest.getSecurityContext()).getSession();
         boolean result = DBProvider.getInstance().deleteSession(current.getToken());
-        return Response.status(result ? Response.Status.OK : Response.Status.BAD_REQUEST).build();
+        return Response.status(result ? Response.Status.NO_CONTENT : Response.Status.BAD_REQUEST).build();
     }
 }
