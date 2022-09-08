@@ -2,6 +2,8 @@ import {createRouter, createWebHistory} from 'vue-router'
 import MainView from '../views/MainView.vue'
 import TripsView from '../views/TripsView.vue'
 import LoginView from '../views/LoginView.vue'
+import TripDetailView from '../views/TripDetailView.vue'
+import TripFormView from '../views/TripFormView.vue'
 import {useAccountStore} from "../stores/account";
 
 const router = createRouter({
@@ -23,6 +25,16 @@ const router = createRouter({
                     path: 'trips',
                     name: 'trips',
                     component: TripsView
+                },
+                {
+                    path: 'trips/:trip_id',
+                    name: 'trip_detail',
+                    component: TripDetailView
+                },
+                {
+                    path: 'trips/new',
+                    name: 'trip_create',
+                    component: TripFormView
                 }
             ]
         },
