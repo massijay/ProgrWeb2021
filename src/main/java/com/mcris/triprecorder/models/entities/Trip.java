@@ -1,6 +1,7 @@
 package com.mcris.triprecorder.models.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
@@ -38,7 +39,7 @@ public class Trip {
     @Basic
     @Column(name = "notes")
     private String notes;
-    @JsonIgnore
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     @OneToMany(mappedBy = "trip", fetch = FetchType.LAZY)
     private Collection<Geopoint> geopoints;
     @JsonIgnore

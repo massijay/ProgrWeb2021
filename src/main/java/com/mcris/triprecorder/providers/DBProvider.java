@@ -11,9 +11,9 @@ import javax.persistence.*;
 import java.sql.Date;
 import java.sql.Timestamp;
 import java.time.LocalDate;
-import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 public class DBProvider {
     private static DBProvider instance = null;
@@ -105,22 +105,24 @@ public class DBProvider {
         }
     }
 
-    public Collection<Trip> getUserTrips(User user, LocalDate date) {
+    public List<Trip> getUserTrips(User user, LocalDate date) {
         EntityManager em = getNewNetityManager();
         try {
-            Collection<Trip> trips;
+            List<Trip> trips;
             if (date != null) {
                 Query query = em.createNamedQuery("Trip.getListByUserAndDate");
                 query.setParameter("userId", user.getId());
                 query.setParameter("tripDate", Date.valueOf(date), TemporalType.DATE);
                 query.setParameter("nextDay", Date.valueOf(date.plusDays(1)), TemporalType.DATE);
                 //noinspection unchecked
-                trips = (List<Trip>) query.getResultList();
+                trips = (List<Trip>) query.getResultList().stream()
+                        .peek(trip -> ((Trip) trip).setGeopoints(null))
+                        .collect(Collectors.toList());
             } else {
-                trips = em.find(User.class, user.getId()).getTrips();
+                trips = em.find(User.class, user.getId()).getTrips().stream()
+                        .peek(trip -> trip.setGeopoints(null))
+                        .collect(Collectors.toList());
             }
-
-            Hibernate.initialize(trips);
             return trips;
         } catch (Exception ex) {
             throw new RuntimeException(ex);
@@ -136,7 +138,9 @@ public class DBProvider {
                 TypedQuery<Trip> query = em.createNamedQuery("Trip.getByIdIfCorrectUser", Trip.class);
                 query.setParameter("tripId", tripId);
                 query.setParameter("userId", userId);
-                return query.getSingleResult();
+                Trip trip = query.getSingleResult();
+                Hibernate.initialize(trip.getGeopoints());
+                return trip;
             } catch (NoResultException ex) {
                 return null;
             } catch (Exception ex) {
