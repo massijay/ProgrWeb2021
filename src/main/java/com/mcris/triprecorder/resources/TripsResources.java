@@ -37,29 +37,29 @@ public class TripsResources {
     @GET
     @Path("{trip_id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Trip getUserTrip(@PathParam("trip_id") int tripId, @Context ContainerRequest containerRequest) {
+    public Response getUserTrip(@PathParam("trip_id") int tripId, @Context ContainerRequest containerRequest) {
         if (tripId == 0) {
-            return null;
+            return Response.status(Response.Status.BAD_REQUEST).build();
         }
         User user = (User) containerRequest.getSecurityContext().getUserPrincipal();
-        return DBProvider.getInstance().getUserTrip(tripId, user.getId());
+        Trip trip = DBProvider.getInstance().getUserTrip(tripId, user.getId());
+        return trip != null ? Response.ok(trip).build() : Response.status(Response.Status.BAD_REQUEST).build();
     }
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Trip postTrip(Trip trip, @Context ContainerRequest containerRequest) {
+    public Response postTrip(Trip trip, @Context ContainerRequest containerRequest) {
         if (trip == null || trip.getId() != 0) {
-            // TODO: ritonare http error? o errore in json con http ok?
-            return null;
+            return Response.status(Response.Status.BAD_REQUEST).build();
         }
         User user = (User) containerRequest.getSecurityContext().getUserPrincipal();
         if (!(trip.getUserId() == 0 || trip.getUserId() == user.getId())) {
-            // TODO: ritonare http error? o errore in json con http ok?
-            return null;
+            return Response.status(Response.Status.UNAUTHORIZED).build();
         }
         trip.setUserId(user.getId());
-        return DBProvider.getInstance().addOrUpdateTrip(trip);
+        Trip newTrip = DBProvider.getInstance().addOrUpdateTrip(trip);
+        return Response.ok(newTrip).build();
     }
 
     @DELETE
@@ -76,31 +76,33 @@ public class TripsResources {
     @GET
     @Path("{trip_id}/geopoints")
     @Produces(MediaType.APPLICATION_JSON)
-    public List<Geopoint> getTripGeopoints(@PathParam("trip_id") int tripId, @Context ContainerRequest containerRequest) {
+    public Response getTripGeopoints(@PathParam("trip_id") int tripId, @Context ContainerRequest containerRequest) {
         if (tripId == 0) {
-            return null;
+            return Response.status(Response.Status.BAD_REQUEST).build();
         }
         User user = (User) containerRequest.getSecurityContext().getUserPrincipal();
-        return DBProvider.getInstance().getTripGeopoints(tripId, user.getId());
+        List<Geopoint> geopoints = DBProvider.getInstance().getTripGeopoints(tripId, user.getId());
+        return geopoints != null ? Response.ok(geopoints).build() : Response.status(Response.Status.BAD_REQUEST).build();
     }
 
     @POST
     @Path("{trip_id}/geopoints")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Geopoint postGeopoint(Geopoint geopoint, @PathParam("trip_id") int tripId, @Context ContainerRequest containerRequest) {
+    public Response postGeopoint(Geopoint geopoint, @PathParam("trip_id") int tripId, @Context ContainerRequest containerRequest) {
         if (tripId == 0) {
-            return null;
+            return Response.status(Response.Status.BAD_REQUEST).build();
         }
         if (geopoint == null || geopoint.getId() != 0) {
-            return null;
+            return Response.status(Response.Status.BAD_REQUEST).build();
         }
         User user = (User) containerRequest.getSecurityContext().getUserPrincipal();
         Trip trip = DBProvider.getInstance().getUserTrip(tripId, user.getId());
         if (trip == null) {
-            return null;
+            return Response.status(Response.Status.BAD_REQUEST).build();
         }
         geopoint.setTripId(tripId);
-        return DBProvider.getInstance().addOrUpdateGeopoint(geopoint);
+        Geopoint newGeopoint = DBProvider.getInstance().addOrUpdateGeopoint(geopoint);
+        return Response.ok(newGeopoint).build();
     }
 }
