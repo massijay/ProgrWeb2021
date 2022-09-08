@@ -27,6 +27,7 @@ public class TripsResources {
                 Collection<Trip> trips = DBProvider.getInstance().getUserTrips(user, localDate);
                 return Response.ok(trips).build();
             } catch (DateTimeParseException ex) {
+                // TODO: Create enum with extra HTTP codes
                 return Response.status(422).build(); // UNPROCESSABLE ENTITY
             }
         }
@@ -38,12 +39,12 @@ public class TripsResources {
     @Path("{trip_id}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getUserTrip(@PathParam("trip_id") int tripId, @Context ContainerRequest containerRequest) {
-        if (tripId == 0) {
-            return Response.status(Response.Status.BAD_REQUEST).build();
+        if (tripId <= 0) {
+            return Response.status(Response.Status.NOT_FOUND).build();
         }
         User user = (User) containerRequest.getSecurityContext().getUserPrincipal();
         Trip trip = DBProvider.getInstance().getUserTrip(tripId, user.getId());
-        return trip != null ? Response.ok(trip).build() : Response.status(Response.Status.BAD_REQUEST).build();
+        return trip != null ? Response.ok(trip).build() : Response.status(Response.Status.NOT_FOUND).build();
     }
 
     @POST
@@ -51,11 +52,11 @@ public class TripsResources {
     @Produces(MediaType.APPLICATION_JSON)
     public Response postTrip(Trip trip, @Context ContainerRequest containerRequest) {
         if (trip == null || trip.getId() != 0) {
-            return Response.status(Response.Status.BAD_REQUEST).build();
+            return Response.status(422).build(); // UNPROCESSABLE ENTITY
         }
         User user = (User) containerRequest.getSecurityContext().getUserPrincipal();
         if (!(trip.getUserId() == 0 || trip.getUserId() == user.getId())) {
-            return Response.status(Response.Status.UNAUTHORIZED).build();
+            return Response.status(422).build(); // UNPROCESSABLE ENTITY
         }
         trip.setUserId(user.getId());
         Trip newTrip = DBProvider.getInstance().addOrUpdateTrip(trip);
@@ -65,12 +66,12 @@ public class TripsResources {
     @DELETE
     @Path("{trip_id}")
     public Response deleteTrip(@PathParam("trip_id") int tripId, @Context ContainerRequest containerRequest) {
-        if (tripId == 0) {
-            return Response.status(Response.Status.BAD_REQUEST).build();
+        if (tripId <= 0) {
+            return Response.status(Response.Status.NOT_FOUND).build();
         }
         User user = (User) containerRequest.getSecurityContext().getUserPrincipal();
         boolean result = DBProvider.getInstance().deleteTrip(tripId, user.getId());
-        return Response.status(result ? Response.Status.OK : Response.Status.BAD_REQUEST).build();
+        return Response.status(result ? Response.Status.OK : Response.Status.NOT_FOUND).build();
     }
 
     @GET
@@ -78,11 +79,11 @@ public class TripsResources {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getTripGeopoints(@PathParam("trip_id") int tripId, @Context ContainerRequest containerRequest) {
         if (tripId == 0) {
-            return Response.status(Response.Status.BAD_REQUEST).build();
+            return Response.status(Response.Status.NOT_FOUND).build();
         }
         User user = (User) containerRequest.getSecurityContext().getUserPrincipal();
         List<Geopoint> geopoints = DBProvider.getInstance().getTripGeopoints(tripId, user.getId());
-        return geopoints != null ? Response.ok(geopoints).build() : Response.status(Response.Status.BAD_REQUEST).build();
+        return geopoints != null ? Response.ok(geopoints).build() : Response.status(Response.Status.NOT_FOUND).build();
     }
 
     @POST
@@ -91,15 +92,15 @@ public class TripsResources {
     @Produces(MediaType.APPLICATION_JSON)
     public Response postGeopoint(Geopoint geopoint, @PathParam("trip_id") int tripId, @Context ContainerRequest containerRequest) {
         if (tripId == 0) {
-            return Response.status(Response.Status.BAD_REQUEST).build();
+            return Response.status(Response.Status.NOT_FOUND).build();
         }
         if (geopoint == null || geopoint.getId() != 0) {
-            return Response.status(Response.Status.BAD_REQUEST).build();
+            return Response.status(422).build(); // UNPROCESSABLE ENTITY
         }
         User user = (User) containerRequest.getSecurityContext().getUserPrincipal();
         Trip trip = DBProvider.getInstance().getUserTrip(tripId, user.getId());
         if (trip == null) {
-            return Response.status(Response.Status.BAD_REQUEST).build();
+            return Response.status(Response.Status.NOT_FOUND).build();
         }
         geopoint.setTripId(tripId);
         Geopoint newGeopoint = DBProvider.getInstance().addOrUpdateGeopoint(geopoint);
