@@ -44,14 +44,10 @@ export const useAccountStore = defineStore('account', () => {
         return axios.post(import.meta.env.VITE_API_URL + '/auth/logout', {})
             .then(response => {
                 clearSessionData();
-                router.push({name: 'login'}).then(() => {
-                });
             })
             .catch(err => {
                 clearSessionData()
                 console.log("Impossibile contattare il server", err)
-                router.push({name: 'login'}).then(() => {
-                });
             });
     }
 
