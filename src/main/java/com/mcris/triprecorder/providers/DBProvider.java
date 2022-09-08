@@ -6,8 +6,11 @@ import com.mcris.triprecorder.models.entities.Trip;
 import com.mcris.triprecorder.models.entities.User;
 import org.hibernate.Hibernate;
 
+import javax.enterprise.inject.Typed;
 import javax.persistence.*;
+import java.sql.Date;
 import java.sql.Timestamp;
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
@@ -102,10 +105,21 @@ public class DBProvider {
         }
     }
 
-    public Collection<Trip> getUserTrips(User user) {
+    public Collection<Trip> getUserTrips(User user, LocalDate date) {
         EntityManager em = getNewNetityManager();
         try {
-            Collection<Trip> trips = em.find(User.class, user.getId()).getTrips();
+            Collection<Trip> trips;
+            if (date != null) {
+                Query query = em.createNamedQuery("Trip.getListByUserAndDate");
+                query.setParameter("userId", user.getId());
+                query.setParameter("tripDate", Date.valueOf(date), TemporalType.DATE);
+                query.setParameter("nextDay", Date.valueOf(date.plusDays(1)), TemporalType.DATE);
+                //noinspection unchecked
+                trips = (List<Trip>) query.getResultList();
+            } else {
+                trips = em.find(User.class, user.getId()).getTrips();
+            }
+
             Hibernate.initialize(trips);
             return trips;
         } catch (Exception ex) {

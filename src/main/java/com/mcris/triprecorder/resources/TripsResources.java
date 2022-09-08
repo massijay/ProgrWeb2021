@@ -10,6 +10,8 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.Collection;
 import java.util.List;
 
@@ -17,9 +19,19 @@ import java.util.List;
 public class TripsResources {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Collection<Trip> getUserTrips(@Context ContainerRequest containerRequest) {
+    public Response getUserTrips(@QueryParam("date") String date, @Context ContainerRequest containerRequest) {
         User user = (User) containerRequest.getSecurityContext().getUserPrincipal();
-        return DBProvider.getInstance().getUserTrips(user);
+        if (date != null) {
+            try {
+                LocalDate localDate = LocalDate.parse(date);
+                Collection<Trip> trips = DBProvider.getInstance().getUserTrips(user, localDate);
+                return Response.ok(trips).build();
+            } catch (DateTimeParseException ex) {
+                return Response.status(422).build(); // UNPROCESSABLE ENTITY
+            }
+        }
+        Collection<Trip> trips = DBProvider.getInstance().getUserTrips(user, null);
+        return Response.ok(trips).build();
     }
 
     @GET

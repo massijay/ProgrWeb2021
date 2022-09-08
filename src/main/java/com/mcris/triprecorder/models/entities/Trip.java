@@ -12,7 +12,9 @@ import java.util.Collection;
         @NamedQuery(name = "Trip.getByIdIfCorrectUser",
                 query = "select t from Trip t where t.id = :tripId and t.userId = :userId"),
         @NamedQuery(name = "Trip.removeByIdIfCorrectUser",
-                query = "delete from Trip t where t.id = :tripId and t.userId = :userId")
+                query = "delete from Trip t where t.id = :tripId and t.userId = :userId"),
+        @NamedQuery(name = "Trip.getListByUserAndDate",
+                    query = "select t from Trip t where t.userId = :userId and t.date >= :tripDate and t.date < :nextDay")
 })
 
 public class Trip {
