@@ -74,6 +74,8 @@ public class TripsResources {
         return Response.status(result ? Response.Status.OK : Response.Status.NOT_FOUND).build();
     }
 
+    // TODO: fare PATCH e PUT di Trip
+
     @GET
     @Path("{trip_id}/geopoints")
     @Produces(MediaType.APPLICATION_JSON)
