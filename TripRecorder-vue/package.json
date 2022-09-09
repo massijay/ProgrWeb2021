@@ -10,6 +10,7 @@
     "@heroicons/vue": "^2.0.10",
     "axios": "^0.27.2",
     "bootstrap": "^5.2.0",
+    "leaflet": "^1.8.0",
     "luxon": "^3.0.3",
     "pinia": "^2.0.22",
     "vue": "^3.2.38",
