@@ -1,0 +1,7 @@
+#combo-list li:hover {
+    background-color: rgba(var(--bs-light-rgb), var(--bs-bg-opacity)) !important;
+}
+
+#combo-list li:last-of-type {
+    border-bottom: none !important;
+}

@@ -35,6 +35,11 @@ const router = createRouter({
                     path: 'trips/new',
                     name: 'trip_create',
                     component: TripFormView
+                },
+                {
+                    path: 'trips/:trip_id/edit',
+                    name: 'trip_edit',
+                    component: TripFormView
                 }
             ]
         },
