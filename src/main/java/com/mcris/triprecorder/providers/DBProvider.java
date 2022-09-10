@@ -72,6 +72,63 @@ public class DBProvider {
         return null;
     }
 
+    public boolean insertNewUser(User user) {
+        if (user != null) {
+            EntityManager em = getNewNetityManager();
+            EntityTransaction transaction = null;
+            try {
+                transaction = em.getTransaction();
+                transaction.begin();
+                em.persist(user);
+                transaction.commit();
+                return true;
+            } catch (NoResultException ex) {
+                if (transaction != null && transaction.isActive()) {
+                    transaction.rollback();
+                }
+                return false;
+            } catch (Exception ex) {
+                if (transaction != null && transaction.isActive()) {
+                    transaction.rollback();
+                }
+                throw new RuntimeException(ex);
+            } finally {
+                em.close();
+            }
+        }
+        return false;
+    }
+
+    public User getUserByUsername(String username) {
+        EntityManager em = getNewNetityManager();
+        try {
+            TypedQuery<User> query = em.createNamedQuery("User.byUsername", User.class);
+            query.setParameter("username", username);
+            return query.getSingleResult();
+        } catch (NoResultException ex) {
+            return null;
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        } finally {
+            em.close();
+        }
+    }
+
+    public User getUserByEmail(String email) {
+        EntityManager em = getNewNetityManager();
+        try {
+            TypedQuery<User> query = em.createNamedQuery("User.byEmail", User.class);
+            query.setParameter("email", email);
+            return query.getSingleResult();
+        } catch (NoResultException ex) {
+            return null;
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        } finally {
+            em.close();
+        }
+    }
+
     public boolean deleteSession(UUID sessionToken) {
         if (sessionToken != null) {
             EntityManager em = getNewNetityManager();

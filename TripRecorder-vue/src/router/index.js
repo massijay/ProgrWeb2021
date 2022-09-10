@@ -2,6 +2,7 @@ import {createRouter, createWebHistory} from 'vue-router'
 import MainView from '../views/MainView.vue'
 import TripsView from '../views/TripsView.vue'
 import LoginView from '../views/LoginView.vue'
+import RegisterView from '../views/RegisterView.vue'
 import TripDetailView from '../views/TripDetailView.vue'
 import TripFormView from '../views/TripFormView.vue'
 import {useAccountStore} from "../stores/account";
@@ -50,6 +51,14 @@ const router = createRouter({
             ,
             name: 'login',
             component: LoginView
+        },
+        {
+            path: '/register',
+            beforeEnter: (to, from) =>
+                useAccountStore().isAuthenticated ? {name: 'trips'} : true
+            ,
+            name: 'register',
+            component: RegisterView
         }
     ]
 })

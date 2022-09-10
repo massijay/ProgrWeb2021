@@ -7,13 +7,21 @@
     <form @submit.prevent="login">
       <div class="mb-3">
         <label for="username" class="form-label">Username</label>
-        <input type="text" required autofocus class="form-control" id="username" v-model="username">
+        <input type="text" required :autofocus="!route.query.registered" class="form-control" id="username" v-model="username">
       </div>
       <div class="mb-3">
         <label for="password" class="form-label">Password</label>
-        <input type="password" required class="form-control" id="password" v-model="password">
+        <input type="password" required :autofocus="route.query.registered" class="form-control" id="password" v-model="password">
       </div>
-      <button type="submit" class="btn btn-primary" :disabled="loading">Login</button>
+      <div class="row justify-content-between align-items-center">
+        <div class="col-auto">
+          <RouterLink :to="{name: 'register'}">Non hai un account?</RouterLink>
+        </div>
+        <div class="col-auto">
+          <button type="submit" class="btn btn-primary" :disabled="loading">Login</button>
+        </div>
+      </div>
+
     </form>
   </div>
 </template>
@@ -22,12 +30,16 @@
 import {ref} from "vue";
 import {useAccountStore} from "../stores/account";
 import router from "../router";
+import {useRoute} from "vue-router";
 
-const username = ref('');
+const route = useRoute();
+
+const username = ref(route.query.registered ?? '');
 const password = ref('');
 const loading = ref(false);
 const error = ref('');
 const accountStore = useAccountStore();
+
 
 async function login() {
   loading.value = true;

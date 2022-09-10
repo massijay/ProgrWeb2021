@@ -27,6 +27,10 @@ export const useAccountStore = defineStore('account', () => {
             .catch(err => console.log("Impossibile caricare i dati dell'utente", err));
     }
 
+    function register(user) {
+        return axios.post(import.meta.env.VITE_API_URL + '/auth/register', user);
+    }
+
     function login(username, password) {
         return axios.post(import.meta.env.VITE_API_URL + '/auth/login',
             {
@@ -86,6 +90,6 @@ export const useAccountStore = defineStore('account', () => {
         }
     }
 
-    return {isAuthenticated, user, getUserData, login, logout};
+    return {isAuthenticated, user, getUserData, login, register, logout};
 
 })

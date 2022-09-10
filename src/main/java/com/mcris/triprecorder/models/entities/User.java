@@ -12,7 +12,14 @@ import java.util.Collection;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Entity
 @Table(name = "users", schema = "trip_recorder")
-@NamedQuery(name = "User.byUsernameAndPassword", query = "select u from User u where u.username = :username and u.password = :password")
+@NamedQueries({
+        @NamedQuery(name = "User.byUsernameAndPassword",
+                query = "select u from User u where u.username = :username and u.password = :password"),
+        @NamedQuery(name = "User.byUsername",
+                query = "select u from User u where u.username = :username"),
+        @NamedQuery(name = "User.byEmail",
+                query = "select u from User u where u.email = :email")
+})
 public class User implements Principal {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
@@ -34,9 +41,11 @@ public class User implements Principal {
     @JsonIgnore
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     private Collection<Trip> trips;
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     @Basic
     @Column(name = "created_at")
     private Timestamp createdAt;
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     @Basic
     @Column(name = "updated_at")
     private Timestamp updatedAt;

@@ -20,7 +20,7 @@ public class AuthFilter implements ContainerRequestFilter {
     @Override
     public void filter(ContainerRequestContext containerRequestContext) {
         String path = containerRequestContext.getUriInfo().getPath();
-        if (path.equals("auth/login")) {
+        if (path.equals("auth/login") || path.equals("auth/register")) {
             return;
         }
 
