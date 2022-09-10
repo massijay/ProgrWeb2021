@@ -63,6 +63,45 @@ public class TripsResources {
         return Response.ok(newTrip).build();
     }
 
+    // TODO: fare PATCH e PUT di Trip
+
+    @PATCH
+    @Path("{trip_id}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response patchTrip(Trip trip, @PathParam("trip_id") int tripId, @Context ContainerRequest containerRequest) {
+        if (trip == null || tripId <= 0) {
+            return Response.status(422).build(); // UNPROCESSABLE ENTITY
+        }
+        User user = (User) containerRequest.getSecurityContext().getUserPrincipal();
+        if (!(trip.getUserId() == 0 || trip.getUserId() == user.getId())) {
+            return Response.status(422).build(); // UNPROCESSABLE ENTITY
+        }
+        trip.setUserId(user.getId());
+        trip.setId(tripId);
+        Trip updatedTrip = DBProvider.getInstance().addOrUpdateTrip(trip);
+        return Response.ok(updatedTrip).build();
+    }
+
+//    @PUT
+//    @Path("{trip_id}")
+//    @Consumes(MediaType.APPLICATION_JSON)
+//    @Produces(MediaType.APPLICATION_JSON)
+//    public Response putTrip(Trip trip, @PathParam("trip_id") int tripId, @Context ContainerRequest containerRequest) {
+//        if (trip == null || tripId <= 0) {
+//            return Response.status(422).build(); // UNPROCESSABLE ENTITY
+//        }
+//        User user = (User) containerRequest.getSecurityContext().getUserPrincipal();
+//        if (!(trip.getUserId() == 0 || trip.getUserId() == user.getId())) {
+//            return Response.status(422).build(); // UNPROCESSABLE ENTITY
+//        }
+//        boolean deleteResult = DBProvider.
+//        trip.setUserId(user.getId());
+//        trip.setId(tripId);
+//        Trip updatedTrip = DBProvider.getInstance().addOrUpdateTrip(trip);
+//        return Response.ok(updatedTrip).build();
+//    }
+
     @DELETE
     @Path("{trip_id}")
     public Response deleteTrip(@PathParam("trip_id") int tripId, @Context ContainerRequest containerRequest) {
@@ -70,17 +109,15 @@ public class TripsResources {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
         User user = (User) containerRequest.getSecurityContext().getUserPrincipal();
-        boolean result = DBProvider.getInstance().deleteTrip(tripId, user.getId());
+        boolean result = DBProvider.getInstance().deleteTripWithItsGeopoints(tripId, user.getId());
         return Response.status(result ? Response.Status.OK : Response.Status.NOT_FOUND).build();
     }
-
-    // TODO: fare PATCH e PUT di Trip
 
     @GET
     @Path("{trip_id}/geopoints")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getTripGeopoints(@PathParam("trip_id") int tripId, @Context ContainerRequest containerRequest) {
-        if (tripId == 0) {
+        if (tripId <= 0) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
         User user = (User) containerRequest.getSecurityContext().getUserPrincipal();
@@ -88,12 +125,14 @@ public class TripsResources {
         return geopoints != null ? Response.ok(geopoints).build() : Response.status(Response.Status.NOT_FOUND).build();
     }
 
+    // TODO: post list of geopoints
+
     @POST
     @Path("{trip_id}/geopoints")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response postGeopoint(Geopoint geopoint, @PathParam("trip_id") int tripId, @Context ContainerRequest containerRequest) {
-        if (tripId == 0) {
+        if (tripId <= 0) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
         if (geopoint == null || geopoint.getId() != 0) {

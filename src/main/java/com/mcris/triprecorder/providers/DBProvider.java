@@ -6,16 +6,18 @@ import com.mcris.triprecorder.models.entities.Trip;
 import com.mcris.triprecorder.models.entities.User;
 import org.hibernate.Hibernate;
 
-import javax.enterprise.inject.Typed;
 import javax.persistence.*;
 import java.sql.Date;
 import java.sql.Timestamp;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class DBProvider {
+
+    //TODO: check transaction and rollback if needed
     private static DBProvider instance = null;
 
     public static DBProvider getInstance() {
@@ -171,18 +173,31 @@ public class DBProvider {
         return null;
     }
 
-    public boolean deleteTrip(int tripId, int userId) {
+    public boolean deleteTripWithItsGeopoints(int tripId, int userId) {
         if (tripId != 0 && userId != 0) {
             EntityManager em = getNewNetityManager();
+            EntityTransaction transaction = null;
             try {
-                em.getTransaction().begin();
+                transaction = em.getTransaction();
+                transaction.begin();
                 Query query = em.createNamedQuery("Trip.removeByIdIfCorrectUser");
                 query.setParameter("tripId", tripId);
                 query.setParameter("userId", userId);
                 int result = query.executeUpdate();
-                em.getTransaction().commit();
-                return result == 1;
+                if (result == 1) {
+                    query = em.createNamedQuery("Geopoint.deleteAllbyTripIdAndUserId");
+                    query.setParameter("tripId", tripId);
+                    query.setParameter("userId", userId);
+                    query.executeUpdate();
+                    transaction.commit();
+                    return true;
+                }
+                transaction.rollback();
+                return false;
             } catch (Exception ex) {
+                if (transaction != null && transaction.isActive()) {
+                    transaction.rollback();
+                }
                 return false;
             } finally {
                 em.close();
@@ -228,5 +243,67 @@ public class DBProvider {
             }
         }
         return null;
+    }
+
+    public List<Geopoint> addOrUpdateGeopoints(List<Geopoint> geopoints) {
+        if (geopoints != null) {
+            List<Geopoint> updated = new ArrayList<>(geopoints.size());
+            EntityManager em = getNewNetityManager();
+            try {
+                em.getTransaction().begin();
+                for (Geopoint p : geopoints) {
+                    updated.add(em.merge(p));
+                }
+                em.getTransaction().commit();
+                return updated;
+            } catch (NoResultException ex) {
+                return null;
+            } catch (Exception ex) {
+                throw new RuntimeException(ex);
+            } finally {
+                em.close();
+            }
+        }
+        return null;
+    }
+
+    public boolean deleteGeopoint(int geopointId, int userId) {
+        if (geopointId != 0 && userId != 0) {
+            EntityManager em = getNewNetityManager();
+            try {
+                em.getTransaction().begin();
+                Query query = em.createNamedQuery("Geopoint.deletebyIdAndUserId");
+                query.setParameter("geopointId", geopointId);
+                query.setParameter("userId", userId);
+                int result = query.executeUpdate();
+                em.getTransaction().commit();
+                return result == 1;
+            } catch (Exception ex) {
+                return false;
+            } finally {
+                em.close();
+            }
+        }
+        return false;
+    }
+
+    public boolean deleteGeopointsOfTrip(int tripId, int userId) {
+        if (tripId != 0 && userId != 0) {
+            EntityManager em = getNewNetityManager();
+            try {
+                em.getTransaction().begin();
+                Query query = em.createNamedQuery("Geopoint.deleteAllbyTripIdAndUserId");
+                query.setParameter("tripId", tripId);
+                query.setParameter("userId", userId);
+                int result = query.executeUpdate();
+                em.getTransaction().commit();
+                return result == 1;
+            } catch (Exception ex) {
+                return false;
+            } finally {
+                em.close();
+            }
+        }
+        return false;
     }
 }
