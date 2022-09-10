@@ -10,8 +10,8 @@ import java.sql.Timestamp;
 @NamedQueries({
         @NamedQuery(name = "Geopoint.getListByTripIdIfUser",
                 query = "select t.geopoints from Trip t where t.id = :tripId and t.userId = :userId"),
-        @NamedQuery(name = "Geopoint.deleteAllbyTripIdAndUserId",
-                query = "delete from Geopoint g where g.tripId = :tripId and g.trip.userId = :userId"),
+        @NamedQuery(name = "Geopoint.deleteAllbyTripId",
+                query = "delete from Geopoint g where g.tripId = :tripId"),
         @NamedQuery(name = "Geopoint.deletebyIdAndUserId",
                 query = "delete from Geopoint g where g.id = :geopointId and g.trip.userId = :userId")
 })

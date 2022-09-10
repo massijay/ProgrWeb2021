@@ -14,6 +14,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Path("/trips")
 public class TripsResources {
@@ -109,6 +110,10 @@ public class TripsResources {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
         User user = (User) containerRequest.getSecurityContext().getUserPrincipal();
+        Trip toDelete = DBProvider.getInstance().getUserTrip(tripId, user.getId());
+        if (toDelete == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
         boolean result = DBProvider.getInstance().deleteTripWithItsGeopoints(tripId, user.getId());
         return Response.status(result ? Response.Status.OK : Response.Status.NOT_FOUND).build();
     }
@@ -125,17 +130,15 @@ public class TripsResources {
         return geopoints != null ? Response.ok(geopoints).build() : Response.status(Response.Status.NOT_FOUND).build();
     }
 
-    // TODO: post list of geopoints
-
-    @POST
+    @PUT
     @Path("{trip_id}/geopoints")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response postGeopoint(Geopoint geopoint, @PathParam("trip_id") int tripId, @Context ContainerRequest containerRequest) {
+    public Response putGeopoints(List<Geopoint> geopoints, @PathParam("trip_id") int tripId, @Context ContainerRequest containerRequest) {
         if (tripId <= 0) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
-        if (geopoint == null || geopoint.getId() != 0) {
+        if (geopoints == null) {
             return Response.status(422).build(); // UNPROCESSABLE ENTITY
         }
         User user = (User) containerRequest.getSecurityContext().getUserPrincipal();
@@ -143,8 +146,14 @@ public class TripsResources {
         if (trip == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
-        geopoint.setTripId(tripId);
-        Geopoint newGeopoint = DBProvider.getInstance().addOrUpdateGeopoint(geopoint);
-        return Response.ok(newGeopoint).build();
+        boolean deleteOk = DBProvider.getInstance().deleteGeopointsOfTrip(tripId);
+        if (!deleteOk) {
+            return Response.status(422).build(); // UNPROCESSABLE ENTITY
+        }
+        List<Geopoint> newGeopoints = DBProvider.getInstance()
+                .addOrUpdateGeopoints(geopoints.stream().peek(p -> p.setId(0)).collect(Collectors.toList()), tripId);
+        return Response.ok(newGeopoints).build();
     }
+
+
 }

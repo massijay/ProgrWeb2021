@@ -185,9 +185,8 @@ public class DBProvider {
                 query.setParameter("userId", userId);
                 int result = query.executeUpdate();
                 if (result == 1) {
-                    query = em.createNamedQuery("Geopoint.deleteAllbyTripIdAndUserId");
+                    query = em.createNamedQuery("Geopoint.deleteAllbyTripId");
                     query.setParameter("tripId", tripId);
-                    query.setParameter("userId", userId);
                     query.executeUpdate();
                     transaction.commit();
                     return true;
@@ -245,13 +244,14 @@ public class DBProvider {
         return null;
     }
 
-    public List<Geopoint> addOrUpdateGeopoints(List<Geopoint> geopoints) {
+    public List<Geopoint> addOrUpdateGeopoints(List<Geopoint> geopoints, int tripId) {
         if (geopoints != null) {
             List<Geopoint> updated = new ArrayList<>(geopoints.size());
             EntityManager em = getNewNetityManager();
             try {
                 em.getTransaction().begin();
                 for (Geopoint p : geopoints) {
+                    p.setTripId(tripId);
                     updated.add(em.merge(p));
                 }
                 em.getTransaction().commit();
@@ -287,18 +287,22 @@ public class DBProvider {
         return false;
     }
 
-    public boolean deleteGeopointsOfTrip(int tripId, int userId) {
-        if (tripId != 0 && userId != 0) {
+    public boolean deleteGeopointsOfTrip(int tripId) {
+        if (tripId != 0) {
             EntityManager em = getNewNetityManager();
+            EntityTransaction transaction = null;
             try {
-                em.getTransaction().begin();
-                Query query = em.createNamedQuery("Geopoint.deleteAllbyTripIdAndUserId");
+                transaction = em.getTransaction();
+                transaction.begin();
+                Query query = em.createNamedQuery("Geopoint.deleteAllbyTripId");
                 query.setParameter("tripId", tripId);
-                query.setParameter("userId", userId);
-                int result = query.executeUpdate();
+                query.executeUpdate();
                 em.getTransaction().commit();
-                return result == 1;
+                return true;
             } catch (Exception ex) {
+                if (transaction != null && transaction.isActive()) {
+                    transaction.rollback();
+                }
                 return false;
             } finally {
                 em.close();
