@@ -1,24 +1,40 @@
 <template>
   <div class="container my-5">
-    <h1>{{ route.params.trip_id ? 'Modifica viaggio' : 'Nuovo viaggio' }}</h1>
-    <form @submit.prevent>
+    <div class="text-center" v-show="(route.params.trip_id && !trip.id) || isLoading">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">Caricamento...</span>
+      </div>
+    </div>
+    <form @submit.prevent="route.params.trip_id ? patchExistingTrip() :postNewTrip()"
+          :class="(!route.params.trip_id || trip.id || isLoading) ? '' : 'opacity-0'">
+      <div class="row align-items-center mb-3">
+        <div class="col">
+          <h1 class="mb-0">{{ route.params.trip_id ? 'Modifica viaggio' : 'Nuovo viaggio' }}</h1>
+        </div>
+        <div class="col-auto">
+          <button type="submit" class="btn btn-primary"
+                  :disabled="isLoading">
+            {{ route.params.trip_id ? 'Aggiorna' : 'Aggiungi' }}
+          </button>
+        </div>
+      </div>
+
       <div class="row mb-3">
         <div class="col col-4">
-
           <label for="nameInput" class="form-label">Nome</label>
-          <input type="text" class="form-control" id="nameInput" v-model="trip.name">
+          <input type="text" required class="form-control" id="nameInput" v-model="trip.name">
         </div>
         <div class="col col-4">
 
           <label for="dateInput" class="form-label">Data</label>
-          <input type="date" class="form-control" id="dateInput" v-model="selectedDate">
+          <input type="date" required class="form-control" id="dateInput" v-model="selectedDate">
         </div>
         <div class="col col-4">
           <div class="position-relative">
             <label for="typeSelect" class="form-label">Mezzo utilizzato</label>
             <Combobox v-model="trip.transportType">
               <ComboboxButton class="bg-transparent border-0 p-0 w-100">
-                <ComboboxInput id="typeSelect" type="text" class="form-select"
+                <ComboboxInput id="typeSelect" type="text" required class="form-select"
                                @change="transportTypeQuery = $event.target.value"/>
               </ComboboxButton>
               <ComboboxOptions class="bg-white border list-unstyled position-absolute rounded w-100 overflow-hidden"
@@ -61,7 +77,7 @@
               </div>
               <div class="col px-2"><input type="text" name=""
                                            class="border-top-0 border-start-0 border-end-0 ms-1 form-control rounded-0 p-0"
-                                           style="border-bottom-style: dotted;" :placeholder="`Pin ${index+1} ✏️`"
+                                           style="border-bottom-style: dotted;" :placeholder="`Tappa ${index+1} ✏️`"
                                            v-model="point.label">
               </div>
               <div class="col-auto"><input type="datetime-local" name=""
@@ -74,15 +90,11 @@
           </ul>
           <ul class="list-group" v-if="trip.geopoints.length===0">
             <li class="list-group-item d-flex justify-content-between align-items-center text-muted py-3">
-              Seleziona un punto sulla mappa per iniziare
+              Seleziona un punto sulla mappa per aggiungere una tappa
             </li>
           </ul>
         </div>
       </div>
-      <button type="submit" class="btn btn-primary"
-              @click.prevent="route.params.trip_id ? patchExistingTrip() :postNewTrip()" :disabled="isLoading">
-        {{ route.params.trip_id ? 'Aggiorna' : 'Aggiungi' }}
-      </button>
     </form>
   </div>
 </template>
@@ -102,33 +114,33 @@ import {
 } from '@headlessui/vue'
 import axios from "axios";
 import router from "../router";
+import {useTripMap} from "../composables/tripMap";
+
+const {
+  map,
+  trip,
+  initMap,
+  getAndDrawTripOnMap,
+  millisTimestampToDateTime,
+  drawMapPath,
+  addMarker,
+  clearMarker,
+} = useTripMap();
 
 const commonTransportTypes = [
   'Macchina',
   'Bicicletta',
-  'Piedi',
+  'Camminata',
   'Autobus',
   'Treno',
   'Aereo',
   'Nave'
 ]
 
-let map = null;
-let polyline = null;
-let currentMarker = null;
-
 const transportTypeQuery = ref('');
 const isLoading = ref(false);
 
 const route = useRoute();
-const trip = ref({
-  name: '',
-  date: route.query.date ? DateTime.fromISO(route.query.date).toMillis() : DateTime.now().toMillis(),
-  transportType: '',
-  notes: '',
-  geopoints: []
-});
-
 
 const filteredTransportTypes = computed(() =>
     transportTypeQuery.value === ''
@@ -143,57 +155,20 @@ const selectedDate = computed({
   set: newValue => trip.value.date = DateTime.fromISO(newValue).toMillis()
 })
 
-function millisTimestampToDateTime(millis) {
-  return DateTime.fromMillis(millis).toFormat("yyyy-MM-dd'T'T")
-  // return "2017-04-20T11:32";
-}
-
 function DateTimeToMillisTimestamp(dateTimeString) {
   return DateTime.fromISO(dateTimeString).toMillis();
 }
 
 onMounted(() => {
-  map = L.map('map').setView([45.659695, 13.794748], 13);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19,
-    attribution: '© OpenStreetMap'
-  }).addTo(map);
-  map.on('click', onMapClick);
-
+  initMap(true);
   if (route.params.trip_id) {
-    axios.get(`${import.meta.env.VITE_API_URL}/trips/${route.params.trip_id}`)
-        .then(response => {
-          trip.value = response.data;
-          drawMapPath(true);
-        });
+    getAndDrawTripOnMap(route.params.trip_id);
   }
 });
-
-function onMapClick(e) {
-  trip.value.geopoints.push({
-    latitude: e.latlng.lat,
-    longitude: e.latlng.lng,
-    recordedAt: DateTime.now().toMillis(),
-    label: ''
-  });
-  drawMapPath();
-}
 
 function sortGeopointsbyTime() {
   trip.value.geopoints.sort((p1, p2) => p1.recordedAt - p2.recordedAt);
   drawMapPath();
-}
-
-function drawMapPath(zoomMap = false) {
-  if (polyline !== null) {
-    polyline.removeFrom(map);
-  }
-  const latlngs = trip.value.geopoints
-      .map(g => [g.latitude, g.longitude])
-  polyline = L.polyline(latlngs, {color: 'red'}).addTo(map);
-  if (zoomMap) {
-    map.fitBounds(polyline.getBounds());
-  }
 }
 
 function postNewTrip() {
@@ -222,17 +197,4 @@ function removeGeopoint(index) {
   trip.value.geopoints.splice(index, 1);
   drawMapPath();
 }
-
-function addMarker(geopoint) {
-  clearMarker();
-  currentMarker = L.marker([geopoint.latitude, geopoint.longitude]).addTo(map);
-}
-
-function clearMarker() {
-  if (currentMarker !== null) {
-    currentMarker.removeFrom(map);
-    currentMarker = null;
-  }
-}
-
 </script>

@@ -27,11 +27,14 @@
       </RouterLink>
       <RouterLink :to="{name: 'trip_create', query:{date: dateFilter}}"
                   class="list-group-item list-group-item-action"
-                  v-if="trips.length === 0">
+                  v-if="trips.length === 0 && !isLoading">
         <p class="mb-1 text-center text-muted">Non sono stati trovati viaggi,
           <span class="text-decoration-underline text-primary">aggiungine uno!</span>
         </p>
       </RouterLink>
+      <a href="#" class="list-group-item list-group-item-action" v-if="isLoading">
+        <p class="mb-1 text-center text-muted">Caricamento...</p>
+      </a>
     </div>
   </div>
 </template>
@@ -43,6 +46,7 @@ import {DateTime} from "luxon";
 
 const dateFilter = ref('');
 const trips = ref([]);
+const isLoading = ref(true);
 
 onBeforeMount(() => {
   loadTrips('');
@@ -53,7 +57,10 @@ watch(dateFilter, () => {
 });
 
 async function loadTrips(filters) {
+  isLoading.value = true;
+  trips.value = [];
   trips.value = (await axios.get(`${import.meta.env.VITE_API_URL}/trips${filters}`)).data;
+  isLoading.value = false;
 }
 
 </script>
