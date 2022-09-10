@@ -13,8 +13,6 @@ import java.util.Collection;
 @Entity
 @Table(name = "users", schema = "trip_recorder")
 @NamedQueries({
-        @NamedQuery(name = "User.byUsernameAndPassword",
-                query = "select u from User u where u.username = :username and u.password = :password"),
         @NamedQuery(name = "User.byUsername",
                 query = "select u from User u where u.username = :username"),
         @NamedQuery(name = "User.byEmail",

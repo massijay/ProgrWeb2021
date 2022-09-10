@@ -148,22 +148,6 @@ public class DBProvider {
         return false;
     }
 
-    public User getUserbyUsernameAndPassword(String username, String password) {
-        EntityManager em = getNewNetityManager();
-        try {
-            TypedQuery<User> query = em.createNamedQuery("User.byUsernameAndPassword", User.class);
-            query.setParameter("username", username);
-            query.setParameter("password", password);
-            return query.getSingleResult();
-        } catch (NoResultException ex) {
-            return null;
-        } catch (Exception ex) {
-            throw new RuntimeException(ex);
-        } finally {
-            em.close();
-        }
-    }
-
     public List<Trip> getUserTrips(User user, LocalDate date) {
         EntityManager em = getNewNetityManager();
         try {
