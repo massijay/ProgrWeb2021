@@ -1,6 +1,6 @@
 <template>
   <div class="container my-5">
-    <h1>New Trip</h1>
+    <h1>{{ route.params.trip_id ? 'Modifica viaggio' : 'Nuovo viaggio' }}</h1>
     <form @submit.prevent>
       <div class="row mb-3">
         <div class="col col-4">
@@ -52,17 +52,21 @@
         <div class="col-12 col-md-4">
           <ul class="list-group">
             <li class="list-group-item d-flex align-items-center justify-content-between"
-                v-for="(point,index) in trip.geopoints">
-              <div class="col-auto">
-                <MapPinIcon style="width: 1.5rem" class="text-danger"></MapPinIcon>
+                v-for="(point,index) in trip.geopoints" style="min-height: 3rem;"
+                @mouseenter="addMarker(point)" @mouseleave="clearMarker()">
+              <div class="col-auto toggle-hover">
+                <MapPinIcon style="height: 1.5rem" class="text-danger toggle-hover-hide"></MapPinIcon>
+                <TrashIcon style="height: 1.5rem" class="text-danger toggle-hover-show cursor-pointer"
+                           @click="removeGeopoint(index)"></TrashIcon>
               </div>
               <div class="col px-2"><input type="text" name=""
                                            class="border-top-0 border-start-0 border-end-0 ms-1 form-control rounded-0 p-0"
-                                           style="border-bottom-style: dotted;" :placeholder="`Pin ${++index} ✏️`"
+                                           style="border-bottom-style: dotted;" :placeholder="`Pin ${index+1} ✏️`"
                                            v-model="point.label">
               </div>
               <div class="col-auto"><input type="datetime-local" name=""
                                            class="badge bg-light rounded-pill text-bg-light d-block border-0"
+                                           @change="sortGeopointsbyTime()"
                                            :value="millisTimestampToDateTime(point.recordedAt)"
                                            @input="point.recordedAt=DateTimeToMillisTimestamp($event.target.value)">
               </div>
@@ -75,8 +79,9 @@
           </ul>
         </div>
       </div>
-      <button type="submit" class="btn btn-primary" @click.prevent="postNewTrip()" :disabled="isLoading">
-        Aggiungi!
+      <button type="submit" class="btn btn-primary"
+              @click.prevent="route.params.trip_id ? patchExistingTrip() :postNewTrip()" :disabled="isLoading">
+        {{ route.params.trip_id ? 'Aggiorna' : 'Aggiungi' }}
       </button>
     </form>
   </div>
@@ -84,10 +89,10 @@
 
 <script setup>
 
-import {computed, onBeforeMount, onMounted, ref, watch} from "vue";
+import {computed, onMounted, ref} from "vue";
 import {useRoute} from "vue-router";
 import {DateTime} from "luxon";
-import {MapPinIcon} from "@heroicons/vue/24/outline"
+import {MapPinIcon, TrashIcon} from "@heroicons/vue/24/outline"
 import {
   Combobox,
   ComboboxInput,
@@ -110,6 +115,7 @@ const commonTransportTypes = [
 
 let map = null;
 let polyline = null;
+let currentMarker = null;
 
 const transportTypeQuery = ref('');
 const isLoading = ref(false);
@@ -146,24 +152,21 @@ function DateTimeToMillisTimestamp(dateTimeString) {
   return DateTime.fromISO(dateTimeString).toMillis();
 }
 
-onBeforeMount(() => {
-  if (route.params.trip_id) {
-    axios.get(`${import.meta.env.VITE_API_URL}/trips/${route.params.trip_id}`)
-        .then(response => {
-          trip.value = response.data;
-          drawMapPath();
-        });
-  }
-});
-
 onMounted(() => {
-  map = L.map('map').setView([51.505, -0.09], 13);
+  map = L.map('map').setView([45.659695, 13.794748], 13);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
     attribution: '© OpenStreetMap'
   }).addTo(map);
-
   map.on('click', onMapClick);
+
+  if (route.params.trip_id) {
+    axios.get(`${import.meta.env.VITE_API_URL}/trips/${route.params.trip_id}`)
+        .then(response => {
+          trip.value = response.data;
+          drawMapPath(true);
+        });
+  }
 });
 
 function onMapClick(e) {
@@ -176,28 +179,60 @@ function onMapClick(e) {
   drawMapPath();
 }
 
-function drawMapPath() {
+function sortGeopointsbyTime() {
+  trip.value.geopoints.sort((p1, p2) => p1.recordedAt - p2.recordedAt);
+  drawMapPath();
+}
+
+function drawMapPath(zoomMap = false) {
   if (polyline !== null) {
     polyline.removeFrom(map);
   }
   const latlngs = trip.value.geopoints
       .map(g => [g.latitude, g.longitude])
   polyline = L.polyline(latlngs, {color: 'red'}).addTo(map);
+  if (zoomMap) {
+    map.fitBounds(polyline.getBounds());
+  }
 }
 
 function postNewTrip() {
   isLoading.value = true;
-  return axios.post(import.meta.env.VITE_API_URL + '/trips', {
+  return axios.post(`${import.meta.env.VITE_API_URL}/trips`, {
     ...trip.value,
     geopoints: undefined
-  })
-      .then(async response => {
-        await trip.value.geopoints.forEach(async p =>
-            await axios.post(`${import.meta.env.VITE_API_URL}/trips/${response.data.id}/geopoints`, p)
-        );
-        await router.push({name: 'trip_detail', params: {trip_id: response.data.id}})
-        isLoading.value = false;
-      })
+  }).then(putGeopoints);
+}
+
+function patchExistingTrip() {
+  isLoading.value = true;
+  return axios.patch(`${import.meta.env.VITE_API_URL}/trips/${trip.value.id}`, {
+    ...trip.value,
+    geopoints: undefined
+  }).then(putGeopoints);
+}
+
+async function putGeopoints(response) {
+  await axios.put(`${import.meta.env.VITE_API_URL}/trips/${response.data.id}/geopoints`, trip.value.geopoints);
+  await router.push({name: 'trip_detail', params: {trip_id: response.data.id}})
+  isLoading.value = false;
+}
+
+function removeGeopoint(index) {
+  trip.value.geopoints.splice(index, 1);
+  drawMapPath();
+}
+
+function addMarker(geopoint) {
+  clearMarker();
+  currentMarker = L.marker([geopoint.latitude, geopoint.longitude]).addTo(map);
+}
+
+function clearMarker() {
+  if (currentMarker !== null) {
+    currentMarker.removeFrom(map);
+    currentMarker = null;
+  }
 }
 
 </script>

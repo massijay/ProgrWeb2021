@@ -5,3 +5,19 @@
 #combo-list li:last-of-type {
     border-bottom: none !important;
 }
+
+.toggle-hover .toggle-hover-show {
+    display: none;
+}
+
+.toggle-hover:hover .toggle-hover-show {
+    display: block;
+}
+
+.toggle-hover:hover .toggle-hover-hide {
+    display: none;
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
