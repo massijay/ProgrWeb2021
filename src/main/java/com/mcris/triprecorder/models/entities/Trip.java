@@ -14,8 +14,10 @@ import java.util.Collection;
                 query = "select t from Trip t where t.id = :tripId and t.userId = :userId"),
         @NamedQuery(name = "Trip.removeByIdIfCorrectUser",
                 query = "delete from Trip t where t.id = :tripId and t.userId = :userId"),
-        @NamedQuery(name = "Trip.getListByUserAndDate",
-                query = "select t from Trip t where t.userId = :userId and t.date >= :tripDate and t.date < :nextDay")
+        @NamedQuery(name = "Trip.getLatestByUser",
+                query = "select t from Trip t where t.userId = :userId order by t.date desc"),
+        @NamedQuery(name = "Trip.getLatestByUserAndDate",
+                query = "select t from Trip t where t.userId = :userId and t.date >= :tripDate and t.date < :nextDay order by t.date desc")
 })
 
 public class Trip {

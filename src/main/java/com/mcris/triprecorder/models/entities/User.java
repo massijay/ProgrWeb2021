@@ -41,11 +41,11 @@ public class User implements Principal {
     private Collection<Trip> trips;
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     @Basic
-    @Column(name = "created_at")
+    @Column(name = "created_at", insertable = false, updatable = false)
     private Timestamp createdAt;
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     @Basic
-    @Column(name = "updated_at")
+    @Column(name = "updated_at", insertable = false, updatable = false)
     private Timestamp updatedAt;
 
     public int getId() {

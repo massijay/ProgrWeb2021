@@ -1,32 +1,40 @@
 <template>
   <div class="container my-5" style="max-width: 320px;">
-    <h1>Registrati</h1>
+    <h1>Il tuo profilo</h1>
     <div class="alert alert-danger" role="alert" v-if="error!==''">
       {{ error }}
     </div>
-    <form @submit.prevent="register">
+    <div class="alert alert-success" role="alert" v-if="success!==''">
+      {{ success }}
+    </div>
+    <form @submit.prevent="updateProfile">
       <div class="mb-3">
         <label for="username" class="form-label">Username</label>
-        <input type="text" required autofocus class="form-control" id="username" v-model="userAccount.username">
+        <input type="text" required class="form-control" id="username"
+               v-model="userAccount.username">
       </div>
       <div class="mb-3">
         <label for="email" class="form-label">Email</label>
-        <input type="email" required class="form-control" id="email" v-model="userAccount.email">
+        <input type="email" required class="form-control" id="email"
+               v-model="userAccount.email">
       </div>
-      <div class="mb-3">
+      <div class="form-check mb-2">
+        <input class="form-check-input" type="checkbox" value="" id="passwordCheckbox" v-model="passwordChange">
+        <label class="form-check-label" for="passwordCheckbox">
+          Vuoi modificare la password?
+        </label>
+      </div>
+      <div class="mb-3" v-if="passwordChange">
         <label for="password" class="form-label">Password</label>
         <input type="password" required class="form-control" id="password" v-model="userAccount.password">
       </div>
-      <div class="mb-3">
+      <div class="mb-3" v-if="passwordChange">
         <label for="confirm_password" class="form-label">Conferma password</label>
         <input type="password" required class="form-control" id="confirm_password" v-model="confirmPassword">
       </div>
-      <div class="row justify-content-between align-items-center">
+      <div class="row justify-content-end align-items-center">
         <div class="col-auto">
-          <RouterLink :to="{name: 'login'}">Hai già un account?</RouterLink>
-        </div>
-        <div class="col-auto">
-          <button type="submit" class="btn btn-primary" :disabled="loading">Registrati</button>
+          <button type="submit" class="btn btn-primary" :disabled="loading">Aggiorna</button>
         </div>
       </div>
     </form>
@@ -34,31 +42,48 @@
 </template>
 
 <script setup>
-import {ref} from "vue";
+import {ref, watch} from "vue";
 import {useAccountStore} from "../stores/account";
-import router from "../router";
 
-const userAccount = ref({
+const confirmPassword = ref('');
+const loading = ref(false);
+const error = ref('');
+const success = ref('');
+const accountStore = useAccountStore();
+const passwordChange = ref(false);
+const userAccount = ref(accountStore.user ? {...accountStore.user} : {
   username: '',
   email: '',
   password: ''
 });
-const confirmPassword = ref('');
-const loading = ref(false);
-const error = ref('');
-const accountStore = useAccountStore();
 
-async function register() {
-  if (userAccount.value.password !== confirmPassword.value) {
+watch(accountStore, (state) => {
+  userAccount.value = {...state.user};
+})
+
+async function updateProfile() {
+  if (passwordChange.value && userAccount.value.password !== confirmPassword.value) {
     error.value = 'Le password non coincidono';
     return;
   }
   loading.value = true;
   error.value = '';
+  success.value = '';
 
-  accountStore.register(userAccount.value)
+  accountStore.updateUserData({
+    username: userAccount.value.username,
+    email: userAccount.value.email,
+    password: passwordChange.value ? userAccount.value.password : undefined
+  })
       .then(() => {
-        router.push({name: 'login', query: {registered: userAccount.value.username}})
+        loading.value = false;
+        success.value = 'Profilo aggiornato con successo!';
+        userAccount.value.password = '';
+        confirmPassword.value = '';
+        passwordChange.value = false;
+        setTimeout(() => {
+          success.value = '';
+        }, 2000);
       })
       .catch((err) => {
         loading.value = false;

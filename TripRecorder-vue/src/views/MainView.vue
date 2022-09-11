@@ -15,10 +15,22 @@
             </RouterLink>
           </li>
         </ul>
-        <span class="navbar-text me-2">
-        Ciao {{ accountStore.user?.username }}
-      </span>
-        <a class="nav-link active" @click.prevent="logout()" href="#">Logout</a>
+        <ul class="navbar-nav">
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              Ciao {{ accountStore.user?.username }}
+            </a>
+            <ul class="dropdown-menu">
+              <li>
+                <RouterLink class="dropdown-item" :to="{name: 'profile'}">Profilo</RouterLink>
+              </li>
+              <li>
+                <hr class="dropdown-divider">
+              </li>
+              <li><a class="dropdown-item" @click.prevent="logout()" href="#">Logout</a></li>
+            </ul>
+          </li>
+        </ul>
       </div>
     </div>
   </nav>
@@ -31,8 +43,8 @@ import {useAccountStore} from "../stores/account";
 import router from "../router";
 
 const accountStore = useAccountStore();
-onBeforeMount(() => {
-  accountStore.getUserData();
+onBeforeMount(async () => {
+  await accountStore.getUserData();
 });
 
 function logout() {

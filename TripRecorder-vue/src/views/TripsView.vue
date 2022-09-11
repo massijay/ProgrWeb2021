@@ -26,16 +26,20 @@
         <small>{{ DateTime.fromMillis(trip.date).toLocaleString(DateTime.DATE_FULL) }}</small>
       </RouterLink>
       <RouterLink :to="{name: 'trip_create', query:{date: dateFilter}}"
-                  class="list-group-item list-group-item-action"
+                  class="list-group-item list-group-item-action disabled"
                   v-if="trips.length === 0 && !isLoading">
         <p class="mb-1 text-center text-muted">Non sono stati trovati viaggi,
           <span class="text-decoration-underline text-primary">aggiungine uno!</span>
         </p>
       </RouterLink>
-      <a href="#" class="list-group-item list-group-item-action" v-if="isLoading">
+      <a href="#" class="list-group-item list-group-item-action disabled" v-if="isLoading">
         <p class="mb-1 text-center text-muted">Caricamento...</p>
       </a>
     </div>
+    <p class="mb-1 text-center text-muted mt-3" v-if="!isLoading && !dateFilter.value && trips.length">
+      <InformationCircleIcon style="width: 1rem;" class="me-1 mb-1"></InformationCircleIcon>
+      Stai visualizzando gli utlimi 10 viaggi, seleziona una data per filtrarli
+    </p>
   </div>
 </template>
 
@@ -43,6 +47,7 @@
 import {onBeforeMount, ref, watch} from "vue";
 import axios from "axios";
 import {DateTime} from "luxon";
+import {InformationCircleIcon} from '@heroicons/vue/24/outline'
 
 const dateFilter = ref('');
 const trips = ref([]);

@@ -14,9 +14,12 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Path("/auth")
 public class AuthResources {
+    static final Pattern emailPattern = Pattern.compile("^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$", Pattern.CASE_INSENSITIVE);
     @POST
     @Path("login")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -41,6 +44,13 @@ public class AuthResources {
     public Response register(User user, @Context ContainerRequest containerRequest) {
         if (user == null || user.getUsername() == null || user.getEmail() == null || user.getPassword() == null) {
             return Response.status(422).build(); // UNPROCESSABLE ENTITY
+        }
+        Matcher matcher = emailPattern.matcher(user.getEmail());
+        if (!matcher.find()) {
+            ErrorMessage em = new ErrorMessage();
+            em.message = "Invalid email address";
+            em.errorCode = 3;
+            return Response.status(422).entity(em).build(); // UNPROCESSABLE ENTITY
         }
         user.setId(0);
         boolean usernameAlreadyExist = DBProvider.getInstance().getUserByUsername(user.getUsername()) != null;

@@ -5,6 +5,7 @@ import LoginView from '../views/LoginView.vue'
 import RegisterView from '../views/RegisterView.vue'
 import TripDetailView from '../views/TripDetailView.vue'
 import TripFormView from '../views/TripFormView.vue'
+import UserProfileView from '../views/UserProfileView.vue'
 import {useAccountStore} from "../stores/account";
 
 const router = createRouter({
@@ -41,6 +42,11 @@ const router = createRouter({
                     path: 'trips/:trip_id/edit',
                     name: 'trip_edit',
                     component: TripFormView
+                },
+                {
+                    path: 'profile',
+                    name: 'profile',
+                    component: UserProfileView
                 }
             ]
         },

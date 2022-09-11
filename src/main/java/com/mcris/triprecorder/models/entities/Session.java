@@ -12,9 +12,9 @@ import java.util.UUID;
 @Table(name = "sessions", schema = "trip_recorder")
 @NamedQueries({
         @NamedQuery(name = "Session.byToken",
-                query = "select s from Session s where s.token = :tokenString"),
+                query = "select s from Session s where s.token = :tokenUUID"),
         @NamedQuery(name = "Session.deleteByToken",
-                query = "delete from Session s where s.token = :tokenString")
+                query = "delete from Session s where s.token = :tokenUUID")
 })
 public class Session {
     // https://www.codementor.io/@petrepopescu/how-to-use-string-uuid-in-hibernate-with-mysql-1jrhjh6ef5

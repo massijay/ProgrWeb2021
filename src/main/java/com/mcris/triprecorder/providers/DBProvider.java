@@ -9,6 +9,7 @@ import org.hibernate.Hibernate;
 import javax.persistence.*;
 import java.sql.Date;
 import java.sql.Timestamp;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -56,7 +57,8 @@ public class DBProvider {
             try {
                 Session session = new Session();
                 session.setUserId(user.getId());
-                session.setExpireAt(Timestamp.valueOf("2030-04-04 23:59:59"));
+                Instant instant = Instant.now().plusSeconds(1800);
+                session.setExpireAt(Timestamp.from(instant));
                 em.getTransaction().begin();
                 em.persist(session);
                 em.getTransaction().commit();
@@ -64,6 +66,33 @@ public class DBProvider {
             } catch (NoResultException ex) {
                 return null;
             } catch (Exception ex) {
+                throw new RuntimeException(ex);
+            } finally {
+                em.close();
+            }
+        }
+        return null;
+    }
+
+    public Session updateSession(Session session) {
+        if (session != null) {
+            EntityManager em = getNewNetityManager();
+            EntityTransaction transaction = null;
+            try {
+                transaction = em.getTransaction();
+                transaction.begin();
+                Session merged = em.merge(session);
+                transaction.commit();
+                return merged;
+            } catch (NoResultException ex) {
+                if (transaction != null && transaction.isActive()) {
+                    transaction.rollback();
+                }
+                return null;
+            } catch (Exception ex) {
+                if (transaction != null && transaction.isActive()) {
+                    transaction.rollback();
+                }
                 throw new RuntimeException(ex);
             } finally {
                 em.close();
@@ -97,6 +126,33 @@ public class DBProvider {
             }
         }
         return false;
+    }
+
+    public User updateUser(User user) {
+        if (user != null) {
+            EntityManager em = getNewNetityManager();
+            EntityTransaction transaction = null;
+            try {
+                transaction = em.getTransaction();
+                transaction.begin();
+                User merged = em.merge(user);
+                transaction.commit();
+                return merged;
+            } catch (NoResultException ex) {
+                if (transaction != null && transaction.isActive()) {
+                    transaction.rollback();
+                }
+                return null;
+            } catch (Exception ex) {
+                if (transaction != null && transaction.isActive()) {
+                    transaction.rollback();
+                }
+                throw new RuntimeException(ex);
+            } finally {
+                em.close();
+            }
+        }
+        return null;
     }
 
     public User getUserByUsername(String username) {
@@ -135,7 +191,7 @@ public class DBProvider {
             try {
                 em.getTransaction().begin();
                 Query query = em.createNamedQuery("Session.deleteByToken");
-                query.setParameter("tokenString", sessionToken);
+                query.setParameter("tokenUUID", sessionToken);
                 int result = query.executeUpdate();
                 em.getTransaction().commit();
                 return result == 1;
@@ -153,7 +209,7 @@ public class DBProvider {
         try {
             List<Trip> trips;
             if (date != null) {
-                Query query = em.createNamedQuery("Trip.getListByUserAndDate");
+                Query query = em.createNamedQuery("Trip.getLatestByUserAndDate");
                 query.setParameter("userId", user.getId());
                 query.setParameter("tripDate", Date.valueOf(date), TemporalType.DATE);
                 query.setParameter("nextDay", Date.valueOf(date.plusDays(1)), TemporalType.DATE);
@@ -162,8 +218,11 @@ public class DBProvider {
                         .peek(trip -> ((Trip) trip).setGeopoints(null))
                         .collect(Collectors.toList());
             } else {
-                trips = em.find(User.class, user.getId()).getTrips().stream()
-                        .peek(trip -> trip.setGeopoints(null))
+                Query query = em.createNamedQuery("Trip.getLatestByUser").setMaxResults(10);
+                query.setParameter("userId", user.getId());
+                //noinspection unchecked
+                trips = (List<Trip>) query.getResultList().stream()
+                        .peek(trip -> ((Trip) trip).setGeopoints(null))
                         .collect(Collectors.toList());
             }
             return trips;

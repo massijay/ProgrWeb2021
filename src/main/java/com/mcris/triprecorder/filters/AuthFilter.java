@@ -34,14 +34,12 @@ public class AuthFilter implements ContainerRequestFilter {
             containerRequestContext.abortWith(Response.status(Response.Status.UNAUTHORIZED).build());
             return;
         }
-        // TODO: needs to be sanitized?
         String token = parts[1];
         Session session = DBProvider.getInstance().getSession(token);
         if (session == null || session.getUser() == null) {
             containerRequestContext.abortWith(Response.status(Response.Status.UNAUTHORIZED).build());
             return;
         }
-        // TODO: check time zone?
         Instant now = Instant.now();
         Timestamp tsNow = Timestamp.from(now);
         if (tsNow.after(session.getExpireAt())) {
@@ -49,6 +47,10 @@ public class AuthFilter implements ContainerRequestFilter {
             containerRequestContext.abortWith(Response.status(Response.Status.UNAUTHORIZED).build());
             return;
         }
+        // TODO: magic numbers
+        Instant instant = Instant.now().plusSeconds(1800);
+        session.setExpireAt(Timestamp.from(instant));
+        session = DBProvider.getInstance().updateSession(session);
         containerRequestContext.setSecurityContext(new SessionSecurityContext(session));
     }
 }
