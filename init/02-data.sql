@@ -5,8 +5,8 @@ INSERT INTO `sessions` (`token`, `user_id`, `expire_at`) VALUES
 ('75aee90a-d2d4-4feb-8cdc-f6549a800477',	1,	'2022-09-11 20:25:32');
 
 INSERT INTO `trips` (`id`, `user_id`, `trip_name`, `trip_date`, `transport_type`, `notes`) VALUES
-(1,	1,	'Calabria 2022',	'2022-08-03 22:00:00',	'Treno',	'Viaggio in Calabria dell\'estate 2022 facendo tappa a Venezia, Bologna e Roma'),
-(2,	1,	'Premantura 2022',	'2022-08-14 22:00:00',	'Macchina',	'Viaggio di andata per il campeggio a Premantura a ferragosto 2022');
+(1,	1,	'Calabria 2022',	'2022-08-04 12:00:00',	'Treno',	'Viaggio in Calabria dell\'estate 2022 facendo tappa a Venezia, Bologna e Roma'),
+(2,	1,	'Premantura 2022',	'2022-08-15 12:00:00',	'Macchina',	'Viaggio di andata per il campeggio a Premantura a ferragosto 2022');
 
 INSERT INTO `geopoints` (`id`, `trip_id`, `latitude`, `longitude`, `recorded_at`, `label`) VALUES
 (2,	1,	45.817315086704404,	13.48576681068872,	'2022-08-04 05:50:00',	'Stazione Trieste Airport'),
