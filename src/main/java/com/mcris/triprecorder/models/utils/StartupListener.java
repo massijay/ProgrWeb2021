@@ -1,4 +1,4 @@
-package com.mcris.triprecorder.models;
+package com.mcris.triprecorder.models.utils;
 
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;

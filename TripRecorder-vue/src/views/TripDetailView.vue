@@ -58,8 +58,7 @@
         </div>
       </div>
     </div>
-
-
+    
     <!-- Modal -->
     <div class="modal fade" id="deleteTripModal" tabindex="-1" aria-labelledby="deleteTripModal" aria-hidden="true">
       <div class="modal-dialog">
@@ -102,7 +101,7 @@ const {
 } = useTripMap();
 
 onMounted(() => {
-  initMap(true);
+  initMap(false);
   getAndDrawTripOnMap(route.params.trip_id);
 });
 

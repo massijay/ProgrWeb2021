@@ -1,6 +1,6 @@
 package com.mcris.triprecorder.filters;
 
-import com.mcris.triprecorder.models.SessionSecurityContext;
+import com.mcris.triprecorder.models.utils.SessionSecurityContext;
 import com.mcris.triprecorder.models.entities.Session;
 import com.mcris.triprecorder.providers.DBProvider;
 
@@ -47,7 +47,6 @@ public class AuthFilter implements ContainerRequestFilter {
             containerRequestContext.abortWith(Response.status(Response.Status.UNAUTHORIZED).build());
             return;
         }
-        // TODO: magic numbers
         Instant instant = Instant.now().plusSeconds(1800);
         session.setExpireAt(Timestamp.from(instant));
         session = DBProvider.getInstance().updateSession(session);

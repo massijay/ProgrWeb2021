@@ -37,3 +37,8 @@ build/
 ### Mac OS ###
 .DS_Store
 .idea/uiDesigner.xml
+
+### Vue compiled webapp ###
+/src/main/webapp/favicon.ico
+/src/main/webapp/assets
+/src/main/webapp/index.html

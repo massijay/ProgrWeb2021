@@ -17,8 +17,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class DBProvider {
-
-    //TODO: check transaction and rollback if needed
     private static DBProvider instance = null;
 
     public static DBProvider getInstance() {

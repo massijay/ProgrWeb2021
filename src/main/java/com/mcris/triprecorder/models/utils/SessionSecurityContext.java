@@ -1,4 +1,4 @@
-package com.mcris.triprecorder.models;
+package com.mcris.triprecorder.models.utils;
 
 import com.mcris.triprecorder.models.entities.Session;
 

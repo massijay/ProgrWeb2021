@@ -28,7 +28,6 @@ public class TripsResources {
                 Collection<Trip> trips = DBProvider.getInstance().getUserTrips(user, localDate);
                 return Response.ok(trips).build();
             } catch (DateTimeParseException ex) {
-                // TODO: Create enum with extra HTTP codes
                 return Response.status(422).build(); // UNPROCESSABLE ENTITY
             }
         }
@@ -64,8 +63,6 @@ public class TripsResources {
         return Response.ok(newTrip).build();
     }
 
-    // TODO: fare PATCH e PUT di Trip
-
     @PATCH
     @Path("{trip_id}")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -83,25 +80,6 @@ public class TripsResources {
         Trip updatedTrip = DBProvider.getInstance().addOrUpdateTrip(trip);
         return Response.ok(updatedTrip).build();
     }
-
-//    @PUT
-//    @Path("{trip_id}")
-//    @Consumes(MediaType.APPLICATION_JSON)
-//    @Produces(MediaType.APPLICATION_JSON)
-//    public Response putTrip(Trip trip, @PathParam("trip_id") int tripId, @Context ContainerRequest containerRequest) {
-//        if (trip == null || tripId <= 0) {
-//            return Response.status(422).build(); // UNPROCESSABLE ENTITY
-//        }
-//        User user = (User) containerRequest.getSecurityContext().getUserPrincipal();
-//        if (!(trip.getUserId() == 0 || trip.getUserId() == user.getId())) {
-//            return Response.status(422).build(); // UNPROCESSABLE ENTITY
-//        }
-//        boolean deleteResult = DBProvider.
-//        trip.setUserId(user.getId());
-//        trip.setId(tripId);
-//        Trip updatedTrip = DBProvider.getInstance().addOrUpdateTrip(trip);
-//        return Response.ok(updatedTrip).build();
-//    }
 
     @DELETE
     @Path("{trip_id}")

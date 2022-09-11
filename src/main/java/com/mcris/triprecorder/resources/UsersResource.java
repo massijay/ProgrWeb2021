@@ -1,7 +1,8 @@
 package com.mcris.triprecorder.resources;
 
-import com.mcris.triprecorder.models.PasswordUtils;
 import com.mcris.triprecorder.models.entities.User;
+import com.mcris.triprecorder.models.utils.ErrorMessage;
+import com.mcris.triprecorder.models.utils.PasswordUtils;
 import com.mcris.triprecorder.providers.DBProvider;
 import org.glassfish.jersey.server.ContainerRequest;
 
@@ -31,24 +32,18 @@ public class UsersResource {
         }
         Matcher matcher = emailPattern.matcher(newUser.getEmail());
         if (!matcher.find()) {
-            ErrorMessage em = new ErrorMessage();
-            em.message = "Invalid email address";
-            em.errorCode = 3;
+            ErrorMessage em = new ErrorMessage("Invalid email address", ErrorMessage.INVALID_EMAIL);
             return Response.status(422).entity(em).build(); // UNPROCESSABLE ENTITY
         }
         User existingUser = (User) containerRequest.getSecurityContext().getUserPrincipal();
         User found = DBProvider.getInstance().getUserByUsername(newUser.getUsername());
         if (found != null && found.getId() != existingUser.getId()) {
-            ErrorMessage em = new ErrorMessage();
-            em.message = "An user with this username already exist";
-            em.errorCode = 1;
+            ErrorMessage em = new ErrorMessage("An user with this username already exist", ErrorMessage.USERNAME_ALREADY_EXISTS);
             return Response.status(422).entity(em).build(); // UNPROCESSABLE ENTITY
         }
         found = DBProvider.getInstance().getUserByEmail(newUser.getEmail());
         if (found != null && found.getId() != existingUser.getId()) {
-            ErrorMessage em = new ErrorMessage();
-            em.message = "An user with this email already exist";
-            em.errorCode = 2;
+            ErrorMessage em = new ErrorMessage("An user with this email already exist", ErrorMessage.EMAIL_ALREADY_EXISTS);
             return Response.status(422).entity(em).build(); // UNPROCESSABLE ENTITY
         }
         if (newUser.getUsername() != null) {

@@ -1,4 +1,4 @@
-package com.mcris.triprecorder.models;
+package com.mcris.triprecorder.models.utils;
 
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
