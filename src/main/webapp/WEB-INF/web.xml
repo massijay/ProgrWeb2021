@@ -12,15 +12,21 @@
         </init-param>
         <init-param>
             <param-name>cors.allowed.methods</param-name>
-            <param-value>GET,POST,HEAD,OPTIONS,PUT,PATCH</param-value>
+            <param-value>GET,POST,HEAD,OPTIONS,PUT,PATCH,DELETE</param-value>
         </init-param>
         <init-param>
             <param-name>cors.allowed.headers</param-name>
-            <param-value>Content-Type,X-Requested-With,accept,Origin,Access-Control-Request-Method,Access-Control-Request-Headers,Authorization</param-value>
+            <param-value>
+                Content-Type,X-Requested-With,accept,Origin,Access-Control-Request-Method,Access-Control-Request-Headers,Authorization
+            </param-value>
         </init-param>
     </filter>
     <filter-mapping>
         <filter-name>CorsFilter</filter-name>
         <url-pattern>/*</url-pattern>
     </filter-mapping>
+    <error-page>
+        <error-code>404</error-code>
+        <location>/index.html</location>
+    </error-page>
 </web-app>

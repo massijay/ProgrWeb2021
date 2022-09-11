@@ -26,7 +26,7 @@
         <small>{{ DateTime.fromMillis(trip.date).toLocaleString(DateTime.DATE_FULL) }}</small>
       </RouterLink>
       <RouterLink :to="{name: 'trip_create', query:{date: dateFilter}}"
-                  class="list-group-item list-group-item-action disabled"
+                  class="list-group-item list-group-item-action"
                   v-if="trips.length === 0 && !isLoading">
         <p class="mb-1 text-center text-muted">Non sono stati trovati viaggi,
           <span class="text-decoration-underline text-primary">aggiungine uno!</span>

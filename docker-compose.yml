@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-    db:
+  db:
         image: mysql
         command: --default-authentication-plugin=mysql_native_password
         restart: always
@@ -12,13 +12,24 @@ services:
             MYSQL_PASSWORD: user
 
         volumes:
-            - ./init:/docker-entrypoint-initdb.d
+          - ./init:/docker-entrypoint-initdb.d
 
         ports:
-            - 3306:3306
-    
-    adminer:
-        image: adminer
-        restart: always
-        ports:
-            - 8090:8080
+          - 3306:3306
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8090:8080
+
+  web:
+    depends_on:
+      - db
+    image: tomcat:9.0
+    volumes:
+      - ./ROOT.war:/usr/local/tomcat/webapps/ROOT.war
+    ports:
+      - 80:8080
+    environment:
+      DB_HOST: db

@@ -16,7 +16,11 @@
           <p class="text-muted">{{ trip.notes }}</p>
         </div>
         <div class="col-auto">
-          <RouterLink class="btn btn-primary" :to="{name: 'trip_edit', param: {trip_id: trip.id }}">Modifica</RouterLink>
+          <RouterLink class="btn btn-primary me-2" :to="{name: 'trip_edit', param: {trip_id: trip.id }}">Modifica
+          </RouterLink>
+          <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteTripModal">
+            Elimina
+          </button>
         </div>
       </div>
 
@@ -54,6 +58,26 @@
         </div>
       </div>
     </div>
+
+
+    <!-- Modal -->
+    <div class="modal fade" id="deleteTripModal" tabindex="-1" aria-labelledby="deleteTripModal" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLabel">Elimina viaggio</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            Sei sicuro di voler eliminare questo viaggio? L'azione non è reversibile.
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+            <button type="button" class="btn btn-danger" data-bs-dismiss="modal" @click="deleteTrip()">Elimina</button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -63,6 +87,8 @@ import {MapPinIcon} from "@heroicons/vue/24/outline"
 import {useRoute} from "vue-router";
 import {useTripMap} from "../composables/tripMap";
 import {onMounted} from "vue";
+import axios from "axios";
+import router from "../router";
 
 const route = useRoute();
 
@@ -79,4 +105,13 @@ onMounted(() => {
   initMap(true);
   getAndDrawTripOnMap(route.params.trip_id);
 });
+
+function deleteTrip() {
+  axios.delete(`${import.meta.env.VITE_API_URL}/trips/${route.params.trip_id}`)
+      .then(response => {
+        router.push({name: 'trips'})
+            .then(() => {
+            });
+      });
+}
 </script>
