@@ -4,8 +4,8 @@ create table trip_recorder.users
     username            varchar(255) not null,
     password            varchar(255) not null,
     email               varchar(255) not null,
-    created_at          timestamp default current_timestamp,
-    updated_at          timestamp on update current_timestamp,
+    created_at          timestamp default current_timestamp not null,
+    updated_at          timestamp default current_timestamp on update current_timestamp not null,
     constraint users_email_uindex unique (email),
     constraint users_id_uindex unique (id),
     constraint users_username_uindex unique (username)
