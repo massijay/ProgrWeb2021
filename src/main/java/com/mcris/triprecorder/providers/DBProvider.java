@@ -34,12 +34,12 @@ public class DBProvider {
         entityManagerFactory = Persistence.createEntityManagerFactory("default");
     }
 
-    private EntityManager getNewNetityManager() {
+    private EntityManager getNewEntityManager() {
         return entityManagerFactory.createEntityManager();
     }
 
     public Session getSession(String sessionToken) {
-        EntityManager em = getNewNetityManager();
+        EntityManager em = getNewEntityManager();
         try {
             Session s = em.find(Session.class, UUID.fromString(sessionToken));
             Hibernate.initialize(s);
@@ -53,7 +53,7 @@ public class DBProvider {
 
     public Session createNewSession(User user) {
         if (user != null) {
-            EntityManager em = getNewNetityManager();
+            EntityManager em = getNewEntityManager();
             try {
                 Session session = new Session();
                 session.setUserId(user.getId());
@@ -76,7 +76,7 @@ public class DBProvider {
 
     public Session updateSession(Session session) {
         if (session != null) {
-            EntityManager em = getNewNetityManager();
+            EntityManager em = getNewEntityManager();
             EntityTransaction transaction = null;
             try {
                 transaction = em.getTransaction();
@@ -103,7 +103,7 @@ public class DBProvider {
 
     public boolean insertNewUser(User user) {
         if (user != null) {
-            EntityManager em = getNewNetityManager();
+            EntityManager em = getNewEntityManager();
             EntityTransaction transaction = null;
             try {
                 transaction = em.getTransaction();
@@ -130,7 +130,7 @@ public class DBProvider {
 
     public User updateUser(User user) {
         if (user != null) {
-            EntityManager em = getNewNetityManager();
+            EntityManager em = getNewEntityManager();
             EntityTransaction transaction = null;
             try {
                 transaction = em.getTransaction();
@@ -156,7 +156,7 @@ public class DBProvider {
     }
 
     public User getUserByUsername(String username) {
-        EntityManager em = getNewNetityManager();
+        EntityManager em = getNewEntityManager();
         try {
             TypedQuery<User> query = em.createNamedQuery("User.byUsername", User.class);
             query.setParameter("username", username);
@@ -171,7 +171,7 @@ public class DBProvider {
     }
 
     public User getUserByEmail(String email) {
-        EntityManager em = getNewNetityManager();
+        EntityManager em = getNewEntityManager();
         try {
             TypedQuery<User> query = em.createNamedQuery("User.byEmail", User.class);
             query.setParameter("email", email);
@@ -187,7 +187,7 @@ public class DBProvider {
 
     public boolean deleteSession(UUID sessionToken) {
         if (sessionToken != null) {
-            EntityManager em = getNewNetityManager();
+            EntityManager em = getNewEntityManager();
             try {
                 em.getTransaction().begin();
                 Query query = em.createNamedQuery("Session.deleteByToken");
@@ -204,8 +204,26 @@ public class DBProvider {
         return false;
     }
 
+    public void cleanupExpiredSessions() {
+        EntityManager em = getNewEntityManager();
+        EntityTransaction transaction = null;
+        try {
+            transaction = em.getTransaction();
+            transaction.begin();
+            Query query = em.createNamedQuery("Session.deleteExpired");
+            query.executeUpdate();
+            em.getTransaction().commit();
+        } catch (Exception ex) {
+            if (transaction != null && transaction.isActive()) {
+                transaction.rollback();
+            }
+        } finally {
+            em.close();
+        }
+    }
+
     public List<Trip> getUserTrips(User user, LocalDate date) {
-        EntityManager em = getNewNetityManager();
+        EntityManager em = getNewEntityManager();
         try {
             List<Trip> trips;
             if (date != null) {
@@ -235,7 +253,7 @@ public class DBProvider {
 
     public Trip getUserTrip(int tripId, int userId) {
         if (tripId != 0 && userId != 0) {
-            EntityManager em = getNewNetityManager();
+            EntityManager em = getNewEntityManager();
             try {
                 TypedQuery<Trip> query = em.createNamedQuery("Trip.getByIdIfCorrectUser", Trip.class);
                 query.setParameter("tripId", tripId);
@@ -256,7 +274,7 @@ public class DBProvider {
 
     public Trip addOrUpdateTrip(Trip trip) {
         if (trip != null) {
-            EntityManager em = getNewNetityManager();
+            EntityManager em = getNewEntityManager();
             try {
                 em.getTransaction().begin();
                 Trip merged = em.merge(trip);
@@ -275,7 +293,7 @@ public class DBProvider {
 
     public boolean deleteTripWithItsGeopoints(int tripId, int userId) {
         if (tripId != 0 && userId != 0) {
-            EntityManager em = getNewNetityManager();
+            EntityManager em = getNewEntityManager();
             EntityTransaction transaction = null;
             try {
                 transaction = em.getTransaction();
@@ -307,7 +325,7 @@ public class DBProvider {
 
     public List<Geopoint> getTripGeopoints(int tripId, int userId) {
         if (tripId != 0 && userId != 0) {
-            EntityManager em = getNewNetityManager();
+            EntityManager em = getNewEntityManager();
             try {
                 Query query = em.createNamedQuery("Geopoint.getListByTripIdIfUser");
                 query.setParameter("tripId", tripId);
@@ -327,7 +345,7 @@ public class DBProvider {
 
     public Geopoint addOrUpdateGeopoint(Geopoint geopoint) {
         if (geopoint != null) {
-            EntityManager em = getNewNetityManager();
+            EntityManager em = getNewEntityManager();
             try {
                 em.getTransaction().begin();
                 Geopoint merged = em.merge(geopoint);
@@ -347,7 +365,7 @@ public class DBProvider {
     public List<Geopoint> addOrUpdateGeopoints(List<Geopoint> geopoints, int tripId) {
         if (geopoints != null) {
             List<Geopoint> updated = new ArrayList<>(geopoints.size());
-            EntityManager em = getNewNetityManager();
+            EntityManager em = getNewEntityManager();
             try {
                 em.getTransaction().begin();
                 for (Geopoint p : geopoints) {
@@ -369,7 +387,7 @@ public class DBProvider {
 
     public boolean deleteGeopoint(int geopointId, int userId) {
         if (geopointId != 0 && userId != 0) {
-            EntityManager em = getNewNetityManager();
+            EntityManager em = getNewEntityManager();
             try {
                 em.getTransaction().begin();
                 Query query = em.createNamedQuery("Geopoint.deletebyIdAndUserId");
@@ -389,7 +407,7 @@ public class DBProvider {
 
     public boolean deleteGeopointsOfTrip(int tripId) {
         if (tripId != 0) {
-            EntityManager em = getNewNetityManager();
+            EntityManager em = getNewEntityManager();
             EntityTransaction transaction = null;
             try {
                 transaction = em.getTransaction();

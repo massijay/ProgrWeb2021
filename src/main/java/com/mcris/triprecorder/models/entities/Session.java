@@ -14,7 +14,9 @@ import java.util.UUID;
         @NamedQuery(name = "Session.byToken",
                 query = "select s from Session s where s.token = :tokenUUID"),
         @NamedQuery(name = "Session.deleteByToken",
-                query = "delete from Session s where s.token = :tokenUUID")
+                query = "delete from Session s where s.token = :tokenUUID"),
+        @NamedQuery(name = "Session.deleteExpired",
+                query = "delete from Session s where s.expireAt <= CURRENT_TIMESTAMP")
 })
 public class Session {
     // https://www.codementor.io/@petrepopescu/how-to-use-string-uuid-in-hibernate-with-mysql-1jrhjh6ef5
