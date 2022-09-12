@@ -3,6 +3,9 @@ import {ref} from "vue";
 import {DateTime} from "luxon";
 import {useRoute} from "vue-router/dist/vue-router";
 import router from "../router";
+import markerX2Icon from 'leaflet/dist/images/marker-icon-2x.png'
+import markerIcon from 'leaflet/dist/images/marker-icon.png'
+import markerShadow from 'leaflet/dist/images/marker-shadow.png'
 
 export function useTripMap() {
 
@@ -21,6 +24,16 @@ export function useTripMap() {
     });
 
     function initMap(enableMapClick = false) {
+        // Fix leaflet bug with Vue not displaying marker icon in production build
+        // https://stackoverflow.com/a/58254190/11583146
+        // https://vitejs.dev/guide/features.html#static-assets
+        delete L.Icon.Default.prototype._getIconUrl;
+        L.Icon.Default.mergeOptions({
+            iconRetinaUrl: markerX2Icon,
+            iconUrl: markerIcon,
+            shadowUrl: markerShadow
+        });
+
         map = L.map('map').setView([45.659695, 13.794748], 13);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,

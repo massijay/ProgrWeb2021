@@ -36,7 +36,7 @@
         <p class="mb-1 text-center text-muted">Caricamento...</p>
       </a>
     </div>
-    <p class="mb-1 text-center text-muted mt-3" v-if="!isLoading && !dateFilter.value && trips.length">
+    <p class="mb-1 text-center text-muted mt-3" v-if="!isLoading && !dateFilter && trips.length">
       <InformationCircleIcon style="width: 1rem;" class="me-1 mb-1"></InformationCircleIcon>
       Stai visualizzando gli utlimi 10 viaggi, seleziona una data per filtrarli
     </p>
